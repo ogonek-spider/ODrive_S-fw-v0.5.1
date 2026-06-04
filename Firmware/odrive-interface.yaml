@@ -775,10 +775,23 @@ interfaces:
       calib_scan_response: readonly float32
       pos_abs: int32
       spi_error_rate: readonly float32
+      mt6701_debug_word0: readonly uint16
+      mt6701_debug_word1: readonly uint16
+      mt6701_debug_raw24: readonly uint32
+      mt6701_debug_pos: readonly uint16
+      mt6701_debug_crc_calc: readonly uint8
+      mt6701_debug_crc_recv: readonly uint8
+      mt6701_debug_crc_ok: readonly bool
+      mt6701_debug_sample_count: readonly uint32
+      mt6701_debug_bad_crc_count: readonly uint32
+      mt6701_debug_request_count: readonly uint32
+      mt6701_debug_start_ok_count: readonly uint32
+      mt6701_debug_start_fail_count: readonly uint32
+      mt6701_debug_mode: readonly uint32
       config:
         c_is_class: False
         attributes:
-          mode: Mode
+          mode: {type: Mode, c_setter: set_mode}
           use_index: {type: bool, c_setter: set_use_index}
           find_idx_on_lockin_only: {type: bool, c_setter: set_find_idx_on_lockin_only}
           abs_spi_cs_gpio_pin: {type: uint16, c_setter: set_abs_spi_cs_gpio_pin}
@@ -798,6 +811,7 @@ interfaces:
           sincos_gpio_pin_cos: uint16
     functions:
       set_linear_count: {in: {count: int32}}
+      mt6701_debug_sample:
 
 
   ODrive.SensorlessEstimator:
@@ -927,6 +941,9 @@ valuetypes:
       SpiAbsRls:
         value: 0x103
         doc: RLS Encoders
+      SpiAbsMt6701:
+        value: 0x105
+        doc: MagnTek MT6701 SSI, 14-bit angle in a 24-bit frame
 
   ODrive.Controller.ControlMode:
     values:

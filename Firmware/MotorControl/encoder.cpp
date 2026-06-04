@@ -25,13 +25,9 @@ void Encoder::setup() {
     HAL_TIM_Encoder_Start(hw_config_.timer, TIM_CHANNEL_ALL);
     set_idx_subscribe();
 
-    mode_ = config_.mode;
-    if(mode_ & MODE_FLAG_ABS){
-        abs_spi_cs_pin_init();
-        abs_spi_init();
-        if (axis_->controller_.config_.anticogging.pre_calibrated) {
-            axis_->controller_.anticogging_valid_ = true;
-        }
+    set_mode(config_.mode);
+    if ((mode_ & MODE_FLAG_ABS) && axis_->controller_.config_.anticogging.pre_calibrated) {
+        axis_->controller_.anticogging_valid_ = true;
     }
 }
 
@@ -40,6 +36,21 @@ void Encoder::set_error(Error error) {
     pos_estimate_valid_ = false;
     error_ |= error;
     axis_->error_ |= Axis::ERROR_ENCODER_FAILED;
+}
+
+void Encoder::set_mode(Mode mode) {
+    mode_ = mode;
+    mt6701_debug_mode_ = mode_;
+    abs_spi_pos_updated_ = false;
+    if (mode_ & MODE_FLAG_ABS) {
+        abs_spi_cs_pin_init();
+        abs_spi_init();
+    }
+}
+
+void Encoder::mt6701_debug_sample() {
+    mt6701_debug_request_count_++;
+    mt6701_debug_mode_ = mode_;
 }
 
 bool Encoder::do_checks(){
@@ -312,6 +323,7 @@ void Encoder::sample_now() {
         case MODE_SPI_ABS_CUI:
         case MODE_SPI_ABS_AEAT:
         case MODE_SPI_ABS_RLS:
+        case MODE_SPI_ABS_MT6701:
         {
             axis_->motor_.log_timing(TIMING_LOG_SAMPLE_NOW);
             // Do nothing
@@ -355,7 +367,8 @@ bool Encoder::abs_spi_start_transaction(){
             return false;
         }
         HAL_GPIO_WritePin(abs_spi_cs_port_, abs_spi_cs_pin_, GPIO_PIN_RESET);
-        HAL_SPI_TransmitReceive_DMA(hw_config_.spi, (uint8_t*)abs_spi_dma_tx_, (uint8_t*)abs_spi_dma_rx_, 1);
+        uint16_t spi_word_count = (mode_ == MODE_SPI_ABS_MT6701) ? 2 : 1;
+        HAL_SPI_TransmitReceive_DMA(hw_config_.spi, (uint8_t*)abs_spi_dma_tx_, (uint8_t*)abs_spi_dma_rx_, spi_word_count);
     }
     return true;
 }
@@ -373,6 +386,20 @@ uint8_t cui_parity(uint16_t v) {
     v ^= v >> 4;
     v ^= v >> 2;
     return ~v & 3;
+}
+
+uint8_t mt6701_crc(uint32_t raw_data) {
+    uint8_t crc = 0;
+    uint32_t data = raw_data >> 6;
+    for (int i = 17; i >= 0; --i) {
+        uint8_t bit = (data >> i) & 1;
+        uint8_t feedback = ((crc >> 5) & 1) ^ bit;
+        crc = (crc << 1) & 0x3f;
+        if (feedback) {
+            crc ^= 0x03;
+        }
+    }
+    return crc;
 }
 
 void Encoder::abs_spi_cb(){
@@ -404,6 +431,26 @@ void Encoder::abs_spi_cb(){
         case MODE_SPI_ABS_RLS: {
             uint16_t rawVal = abs_spi_dma_rx_[0];
             pos = (rawVal >> 2) & 0x3fff;
+        } break;
+
+        case MODE_SPI_ABS_MT6701: {
+            uint32_t rawVal = ((uint32_t)abs_spi_dma_rx_[0] << 16) | abs_spi_dma_rx_[1];
+            uint32_t raw24 = rawVal >> 8;
+            uint8_t crc_calc = mt6701_crc(raw24);
+            uint8_t crc_recv = raw24 & 0x3f;
+            mt6701_debug_word0_ = abs_spi_dma_rx_[0];
+            mt6701_debug_word1_ = abs_spi_dma_rx_[1];
+            mt6701_debug_raw24_ = raw24;
+            mt6701_debug_pos_ = (raw24 >> 10) & 0x3fff;
+            mt6701_debug_crc_calc_ = crc_calc;
+            mt6701_debug_crc_recv_ = crc_recv;
+            mt6701_debug_crc_ok_ = (raw24 != 0) && (crc_calc == crc_recv);
+            mt6701_debug_sample_count_++;
+            if (!mt6701_debug_crc_ok_) {
+                mt6701_debug_bad_crc_count_++;
+                return;
+            }
+            pos = mt6701_debug_pos_;
         } break;
 
         default: {
@@ -479,7 +526,8 @@ bool Encoder::update() {
         case MODE_SPI_ABS_RLS:
         case MODE_SPI_ABS_AMS:
         case MODE_SPI_ABS_CUI: 
-        case MODE_SPI_ABS_AEAT: {
+        case MODE_SPI_ABS_AEAT:
+        case MODE_SPI_ABS_MT6701: {
             if (abs_spi_pos_updated_ == false) {
                 // Low pass filter the error
                 spi_error_rate_ += current_meas_period * (1.0f - spi_error_rate_);

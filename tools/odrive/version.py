@@ -39,6 +39,15 @@ def get_version_from_git():
         return git_tag, major, minor, revision, is_prerelease
 
     except Exception as ex:
+        version_file_path = os.path.join(script_dir, 'version.txt')
+        if os.path.exists(version_file_path):
+            try:
+                with open(version_file_path) as version_file:
+                    version_string = version_file.readline().rstrip('\n')
+                major, minor, revision, is_prerelease = version_str_to_tuple(version_string)
+                return version_string, major, minor, revision, is_prerelease
+            except Exception:
+                pass
         print(ex)
         return "[unknown version]", 0, 0, 0, 1
 

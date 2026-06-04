@@ -36,6 +36,7 @@ public:
 
         // custom setters
         Encoder* parent = nullptr;
+        void set_mode(Mode value) { mode = value; parent->set_mode(value); }
         void set_use_index(bool value) { use_index = value; parent->set_idx_subscribe(); }
         void set_find_idx_on_lockin_only(bool value) { find_idx_on_lockin_only = value; parent->set_idx_subscribe(); }
         void set_abs_spi_cs_gpio_pin(uint16_t value) { abs_spi_cs_gpio_pin = value; parent->abs_spi_cs_pin_init(); }
@@ -48,6 +49,7 @@ public:
     
     void setup();
     void set_error(Error error);
+    void set_mode(Mode mode);
     bool do_checks();
 
     void enc_index_cb();
@@ -64,6 +66,7 @@ public:
     bool run_offset_calibration();
     void sample_now();
     bool update();
+    void mt6701_debug_sample();
 
     const EncoderHardwareConfig_t& hw_config_;
     Config_t& config_;
@@ -84,6 +87,19 @@ public:
     float calib_scan_response_ = 0.0f; // debug report from offset calib
     int32_t pos_abs_ = 0;
     float spi_error_rate_ = 0.0f;
+    uint16_t mt6701_debug_word0_ = 0;
+    uint16_t mt6701_debug_word1_ = 0;
+    uint32_t mt6701_debug_raw24_ = 0;
+    uint16_t mt6701_debug_pos_ = 0;
+    uint8_t mt6701_debug_crc_calc_ = 0;
+    uint8_t mt6701_debug_crc_recv_ = 0;
+    bool mt6701_debug_crc_ok_ = false;
+    uint32_t mt6701_debug_sample_count_ = 0;
+    uint32_t mt6701_debug_bad_crc_count_ = 0;
+    uint32_t mt6701_debug_request_count_ = 0;
+    uint32_t mt6701_debug_start_ok_count_ = 0;
+    uint32_t mt6701_debug_start_fail_count_ = 0;
+    uint32_t mt6701_debug_mode_ = 0;
 
     float pos_estimate_ = 0.0f; // [turn]
     float vel_estimate_ = 0.0f; // [turn/s]
@@ -103,8 +119,8 @@ public:
     bool abs_spi_start_transaction();
     void abs_spi_cb();
     void abs_spi_cs_pin_init();
-    uint16_t abs_spi_dma_tx_[1] = {0xFFFF};
-    uint16_t abs_spi_dma_rx_[1];
+    uint16_t abs_spi_dma_tx_[2] = {0xFFFF, 0xFFFF};
+    uint16_t abs_spi_dma_rx_[2];
     bool abs_spi_pos_updated_ = false;
     Mode mode_ = MODE_INCREMENTAL;
     GPIO_TypeDef* abs_spi_cs_port_;

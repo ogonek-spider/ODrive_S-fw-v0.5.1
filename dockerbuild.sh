@@ -14,7 +14,7 @@ function build {
     cleanup
 
     echo "Building the firmware"
-    docker build -t odrive-build-img .
+    docker build --platform linux/amd64 -t odrive-build-img .
 
     echo "Create container"
     docker create --name odrive-build-cont odrive-build-img:latest
