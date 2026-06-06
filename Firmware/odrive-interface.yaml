@@ -699,6 +699,13 @@ interfaces:
             type: uint8
             # TODO: this is meaningless for a user. Should there be a separate developer note?
             doc: Default depends on Axis number and is set in load_configuration()
+          vel_encoder_axis:
+            type: uint8
+            doc: Encoder axis to use for velocity feedback. Defaults to load_encoder_axis if unset.
+          position_direction:
+            type: int32
+            c_setter: set_position_direction
+            doc: Sign from load-position error to motor velocity command. Use 1 or -1.
           input_filter_bandwidth:
             type: float32
             unit: 1/s
@@ -800,6 +807,14 @@ interfaces:
           offset: int32
           pre_calibrated: {type: bool, c_setter: set_pre_calibrated}
           offset_float: float32
+          direction:
+            type: int32
+            c_setter: set_direction
+            doc: Direction of published position and velocity estimates. Use 1 or -1.
+          zero_offset:
+            type: int32
+            c_setter: set_zero_offset
+            doc: Raw encoder count that maps to published position zero.
           enable_phase_interpolation: bool
           bandwidth: {type: float32, c_setter: set_bandwidth}
           calib_range: float32
@@ -811,6 +826,7 @@ interfaces:
           sincos_gpio_pin_cos: uint16
     functions:
       set_linear_count: {in: {count: int32}}
+      set_zero:
       mt6701_debug_sample:
 
 

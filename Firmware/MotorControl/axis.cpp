@@ -312,7 +312,10 @@ bool Axis::run_sensorless_control_loop() {
 }
 
 bool Axis::run_closed_loop_control_loop() {
-    if (!controller_.select_encoder(controller_.config_.load_encoder_axis)) {
+    uint8_t vel_encoder_axis = (controller_.config_.vel_encoder_axis < AXIS_COUNT)
+            ? controller_.config_.vel_encoder_axis
+            : controller_.config_.load_encoder_axis;
+    if (!controller_.select_encoder(controller_.config_.load_encoder_axis, vel_encoder_axis)) {
         return error_ |= ERROR_CONTROLLER_FAILED, false;
     }
 
@@ -380,7 +383,10 @@ bool Axis::run_homing() {
 
     homing_.is_homed = false;
 
-    if (!controller_.select_encoder(controller_.config_.load_encoder_axis)) {
+    uint8_t vel_encoder_axis = (controller_.config_.vel_encoder_axis < AXIS_COUNT)
+            ? controller_.config_.vel_encoder_axis
+            : controller_.config_.load_encoder_axis;
+    if (!controller_.select_encoder(controller_.config_.load_encoder_axis, vel_encoder_axis)) {
         return error_ |= ERROR_CONTROLLER_FAILED, false;
     }
     

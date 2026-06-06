@@ -43,10 +43,13 @@ public:
         uint8_t axis_to_mirror = -1;
         float mirror_ratio = 1.0f;
         uint8_t load_encoder_axis = -1;  // default depends on Axis number and is set in load_configuration()
+        uint8_t vel_encoder_axis = -1;   // defaults to load_encoder_axis if left unset
+        int32_t position_direction = 1;  // Sign from load-position error to motor velocity command
 
         // custom setters
         Controller* parent;
         void set_input_filter_bandwidth(float value) { input_filter_bandwidth = value; parent->update_filter_gains(); }
+        void set_position_direction(int32_t value) { position_direction = (value < 0) ? -1 : 1; }
     };
 
     explicit Controller(Config_t& config);
@@ -58,6 +61,7 @@ public:
     }
 
     bool select_encoder(size_t encoder_num);
+    bool select_encoder(size_t pos_encoder_num, size_t vel_encoder_num);
 
     // Trajectory-Planned control
     void move_to_pos(float goal_point);

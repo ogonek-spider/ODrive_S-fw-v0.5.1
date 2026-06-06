@@ -130,6 +130,22 @@ void Encoder::set_linear_count(int32_t count) {
     cpu_exit_critical(prim);
 }
 
+void Encoder::set_zero() {
+    uint32_t prim = cpu_enter_critical();
+    config_.zero_offset = count_in_cpr_;
+    user_pos_estimate_counts_ = 0.0f;
+    last_raw_pos_estimate_counts_ = pos_estimate_counts_;
+    pos_estimate_ = 0.0f;
+    pos_cpr_ = 0.0f;
+    pos_circular_ = 0.0f;
+    user_position_initialized_ = true;
+    cpu_exit_critical(prim);
+}
+
+void Encoder::reset_user_position() {
+    user_position_initialized_ = false;
+}
+
 // Function that sets the CPR circular tracking encoder count to a desired 32-bit value.
 // Note that this will get mod'ed down to [0, cpr)
 void Encoder::set_circular_count(int32_t count, bool update_offset) {
@@ -578,14 +594,38 @@ bool Encoder::update() {
         snap_to_zero_vel = true;
     }
 
-    // Outputs from Encoder for Controller
-    float pos_cpr_last = pos_cpr_;
-    pos_estimate_ = pos_estimate_counts_ / (float)config_.cpr;
-    vel_estimate_ = vel_estimate_counts_ / (float)config_.cpr;
-    pos_cpr_= pos_cpr_counts_ / (float)config_.cpr;
-    float delta_pos_cpr = wrap_pm(pos_cpr_ - pos_cpr_last, 0.5f);
-    pos_circular_ += delta_pos_cpr;
-    pos_circular_ = fmodf_pos(pos_circular_, axis_->controller_.config_.circular_setpoint_range);
+    // Apply the user coordinate transform only to controller-facing estimates.
+    // Raw encoder counts remain unchanged for electrical phase calculation.
+    int32_t user_direction = (config_.direction < 0) ? -1 : 1;
+    float raw_pos_cpr = pos_cpr_counts_ / (float)config_.cpr;
+    float user_pos_cpr = fmodf_pos(
+            user_direction * (pos_cpr_counts_ - (float)config_.zero_offset),
+            (float)config_.cpr) / (float)config_.cpr;
+
+    if (!user_position_initialized_) {
+        float relative_counts = wrap_pm(
+                pos_cpr_counts_ - (float)config_.zero_offset,
+                0.5f * (float)config_.cpr);
+        user_pos_estimate_counts_ = user_direction * relative_counts;
+        last_raw_pos_estimate_counts_ = pos_estimate_counts_;
+        pos_circular_ = fmodf_pos(
+                user_direction * wrap_pm(raw_pos_cpr -
+                        (float)config_.zero_offset / (float)config_.cpr, 0.5f),
+                axis_->controller_.config_.circular_setpoint_range);
+        user_position_initialized_ = true;
+    } else {
+        user_pos_estimate_counts_ += user_direction *
+                (pos_estimate_counts_ - last_raw_pos_estimate_counts_);
+        last_raw_pos_estimate_counts_ = pos_estimate_counts_;
+        float delta_pos_cpr = wrap_pm(user_pos_cpr - pos_cpr_, 0.5f);
+        pos_circular_ += delta_pos_cpr;
+        pos_circular_ = fmodf_pos(pos_circular_,
+                axis_->controller_.config_.circular_setpoint_range);
+    }
+
+    pos_estimate_ = user_pos_estimate_counts_ / (float)config_.cpr;
+    vel_estimate_ = user_direction * vel_estimate_counts_ / (float)config_.cpr;
+    pos_cpr_ = user_pos_cpr;
 
     //// run encoder count interpolation
     int32_t corrected_enc = count_in_cpr_ - config_.offset;

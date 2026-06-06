@@ -94,6 +94,7 @@ extern "C" int load_configuration(void) {
             min_endstop_configs[i] = Endstop::Config_t();
             max_endstop_configs[i] = Endstop::Config_t();
             controller_configs[i].load_encoder_axis = i;
+            controller_configs[i].vel_encoder_axis = i;
         }
     } else {
         odrv.user_config_loaded_ = true;

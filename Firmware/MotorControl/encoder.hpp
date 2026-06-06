@@ -22,6 +22,8 @@ public:
         int32_t cpr = (2048 * 4);   // Default resolution of CUI-AMT102 encoder,
         int32_t offset = 0;        // Offset between encoder count and rotor electrical phase
         float offset_float = 0.0f; // Sub-count phase alignment offset
+        int32_t direction = 1;     // Direction of published position/velocity estimates (1 or -1)
+        int32_t zero_offset = 0;   // Raw encoder count that maps to published position zero
         bool enable_phase_interpolation = true; // Use velocity to interpolate inside the count state
         float calib_range = 0.02f; // Accuracy required to pass encoder cpr check
         float calib_scan_distance = 16.0f * M_PI; // rad electrical
@@ -42,6 +44,14 @@ public:
         void set_abs_spi_cs_gpio_pin(uint16_t value) { abs_spi_cs_gpio_pin = value; parent->abs_spi_cs_pin_init(); }
         void set_pre_calibrated(bool value) { pre_calibrated = value; parent->check_pre_calibrated(); }
         void set_bandwidth(float value) { bandwidth = value; parent->update_pll_gains(); }
+        void set_direction(int32_t value) {
+            direction = (value < 0) ? -1 : 1;
+            parent->reset_user_position();
+        }
+        void set_zero_offset(int32_t value) {
+            zero_offset = mod(value, cpr);
+            parent->reset_user_position();
+        }
     };
 
     Encoder(const EncoderHardwareConfig_t& hw_config,
@@ -59,6 +69,8 @@ public:
 
     void set_linear_count(int32_t count);
     void set_circular_count(int32_t count, bool update_offset);
+    void set_zero();
+    void reset_user_position();
     bool calib_enc_offset(float voltage_magnitude);
 
     bool run_index_search();
@@ -82,6 +94,9 @@ public:
     float pos_estimate_counts_ = 0.0f;  // [count]
     float pos_cpr_counts_ = 0.0f;  // [count]
     float vel_estimate_counts_ = 0.0f;  // [count/s]
+    float user_pos_estimate_counts_ = 0.0f; // Direction- and zero-adjusted position [count]
+    float last_raw_pos_estimate_counts_ = 0.0f;
+    bool user_position_initialized_ = false;
     float pll_kp_ = 0.0f;   // [count/s / count]
     float pll_ki_ = 0.0f;   // [(count/s^2) / count]
     float calib_scan_response_ = 0.0f; // debug report from offset calib

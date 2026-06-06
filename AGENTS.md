@@ -55,6 +55,68 @@ odrv0.axis0.encoder.config.abs_spi_cs_gpio_pin = 6
 odrv0.axis0.encoder.config.enable_phase_interpolation = False
 ```
 
+### Persistent Encoder Zero and Direction
+
+The encoder interface has local user-coordinate configuration that does not
+modify the raw encoder count or motor electrical phase:
+
+- `encoder.config.direction`: `1` for normal or `-1` for reversed published
+  position and velocity.
+- `encoder.config.zero_offset`: saved raw encoder count that maps to published
+  position zero.
+- `encoder.set_zero()`: captures the current raw encoder position into
+  `zero_offset` and immediately resets the published position to zero.
+
+For the load-side MT6701 on `axis1`, make leg-down movement positive and save
+the current physical pose as zero with:
+
+```python
+# Keep the motor idle and hold the joint at its desired zero pose.
+odrv0.axis1.encoder.config.direction = -1
+odrv0.axis1.encoder.set_zero()
+
+# Verify before saving.
+print(odrv0.axis1.encoder.config.direction)
+print(odrv0.axis1.encoder.config.zero_offset)
+print(odrv0.axis1.encoder.pos_estimate)
+
+# Move the joint by hand and confirm leg-down movement increases pos_estimate.
+odrv0.save_configuration()
+```
+
+After reconnecting, verify that `direction`, `zero_offset`, and the zeroed
+`pos_estimate` were restored. Do not use `encoder.config.offset` for joint
+zeroing or direction reversal; it is reserved for motor electrical phase.
+
+Adding these fields changed the NVM configuration layout and incremented the
+configuration version to `0x0003`. The first flash of this firmware invalidates
+the previous saved configuration. Back up the current configuration to JSON
+before flashing and restore it afterward as described in Flashing Notes.
+
+For geared joints where MT6701 is mounted after the gearbox and Hall sensors are on the motor side, controller feedback is patched to support split position/velocity sources:
+
+```python
+# axis0: motor-side Hall encoder for commutation and velocity
+odrv0.axis0.encoder.config.mode = ENCODER_MODE_HALL
+odrv0.axis0.encoder.config.cpr = 6 * odrv0.axis0.motor.config.pole_pairs
+
+# axis1: load-side MT6701 after gearbox for joint position
+odrv0.axis1.encoder.config.mode = 261
+odrv0.axis1.encoder.config.cpr = 16384
+odrv0.axis1.encoder.config.abs_spi_cs_gpio_pin = 6
+odrv0.axis1.encoder.config.enable_phase_interpolation = False
+
+# axis0 controller uses load position from axis1 and velocity from axis0
+odrv0.axis0.controller.config.load_encoder_axis = 1
+odrv0.axis0.controller.config.vel_encoder_axis = 0
+odrv0.axis0.controller.config.position_direction = -1
+```
+
+`vel_encoder_axis` is a local firmware addition. If unset or invalid, runtime falls back to `load_encoder_axis`.
+`position_direction` is a local firmware addition. Use `-1` when positive
+load-encoder motion corresponds to negative motor-side Hall velocity. Keep
+`pos_gain` positive.
+
 ## Build
 
 Preferred build path is Docker from the repository root. On Apple Silicon, the Docker build must run as `linux/amd64` because the old Ubuntu bionic `tup` PPA package is not available for arm64. The local `dockerbuild.sh` and `Dockerfile` have been patched for that.
@@ -79,6 +141,42 @@ Expected Docker artifacts are copied to repo-root `build/`:
 The Dockerfile also removes copied `Firmware/build` and generated `Firmware/autogen/*.hpp` files inside the container before running `tup generate build.sh`; otherwise Tup treats them as normal files and refuses to overwrite them.
 
 ## Flashing Notes
+
+### Back Up and Restore Configuration
+
+Before flashing firmware that changes the NVM configuration layout, save the
+current board configuration to an explicit JSON file while the old firmware is
+still running:
+
+```bash
+cd /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1
+.venv/bin/odrivetool backup-config odrive-config-before-flash.json
+```
+
+Keep this file until the restored configuration has been verified. After
+flashing the new firmware and reconnecting the board, restore the JSON:
+
+```bash
+cd /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1
+.venv/bin/odrivetool restore-config odrive-config-before-flash.json
+```
+
+The old JSON does not contain newly added fields such as
+`axis1.encoder.config.direction` and `axis1.encoder.config.zero_offset`. After
+restoring, configure those fields, capture the desired zero, verify all motor,
+Hall, controller, and MT6701 settings, then save:
+
+```python
+odrv0.axis1.encoder.config.direction = -1
+odrv0.axis1.encoder.set_zero()
+
+# Verify restored configuration and encoder polarity before saving.
+odrv0.save_configuration()
+```
+
+Do not rely on the temporary default backup path printed by `odrivetool`; use
+an explicit JSON filename in the repository root. Do not restore a
+configuration from different hardware without reviewing every value.
 
 Use the Python environment in this firmware repo:
 
@@ -135,6 +233,121 @@ Generated output contains:
 ```cpp
 MODE_SPI_ABS_MT6701 = 261
 ```
+
+## Motor Bringup Notes
+
+### Clearing Errors
+
+This v0.5.1 firmware interface does not expose the newer root
+`odrv0.clear_errors()` method. Clear the writable error fields directly:
+
+```python
+# Clear axis0 and its motor/encoder/controller errors
+odrv0.axis0.motor.error = 0
+odrv0.axis0.encoder.error = 0
+odrv0.axis0.controller.error = 0
+odrv0.axis0.error = 0
+
+# Clear axis1 and its motor/encoder/controller errors
+odrv0.axis1.motor.error = 0
+odrv0.axis1.encoder.error = 0
+odrv0.axis1.controller.error = 0
+odrv0.axis1.error = 0
+```
+
+Clear child errors before the parent axis error. Then read the fields again
+after a short delay; if an error returns, the underlying fault is still active.
+Clearing errors only removes latched fault flags and does not fix their cause.
+
+Current tested motor is a hoverboard-style motor on `axis0` with Hall feedback. The motor was configured and calibrated successfully with:
+
+```python
+odrv0.axis0.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
+odrv0.axis0.motor.config.pole_pairs = 15
+odrv0.axis0.motor.config.calibration_current = 5.0
+odrv0.axis0.motor.config.resistance_calib_max_voltage = 4.0
+odrv0.axis0.encoder.config.mode = ENCODER_MODE_HALL
+odrv0.axis0.encoder.config.cpr = 90
+odrv0.axis0.encoder.config.calib_range = 0.05
+```
+
+Measured calibration values:
+
+```text
+phase_resistance: 0.258798211812973
+phase_inductance: 0.0006440942524932325
+motor.config.direction: -1
+encoder.config.offset: 17
+encoder.config.offset_float: 1.4993749856948853
+calib_scan_response: 48.0
+```
+
+Saved Hall-only velocity tuning after testing:
+
+```python
+odrv0.axis0.motor.config.current_lim = 12.0
+odrv0.axis0.encoder.config.bandwidth = 20
+odrv0.axis0.controller.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
+odrv0.axis0.controller.config.input_mode = INPUT_MODE_VEL_RAMP
+odrv0.axis0.controller.config.vel_gain = 0.10
+odrv0.axis0.controller.config.vel_integrator_gain = 0.02
+odrv0.axis0.controller.config.vel_limit = 2.5
+odrv0.axis0.controller.config.vel_ramp_rate = 1.0
+odrv0.axis0.controller.config.enable_overspeed_error = False
+odrv0.axis0.controller.config.load_encoder_axis = 0
+odrv0.axis0.controller.config.vel_encoder_axis = 0
+```
+
+This configuration was saved to flash with `save_configuration()` and verified after reconnect:
+
+```text
+user_config_loaded: True
+current_lim: 12.0
+vel_gain: 0.10000000149011612
+vel_integrator_gain: 0.019999999552965164
+encoder bandwidth: 20.0
+errors: 0 0 0 0
+```
+
+The correct root save method for this firmware interface is `odrv0.save_configuration()`, not `save_config()`.
+
+Hall signal stability:
+
+- Before filtering, long/faster runs sometimes failed with `AXIS_ERROR_ENCODER_FAILED` and `ENCODER_ERROR_ILLEGAL_HALL_STATE`.
+- The user added capacitors on Hall A/B/C to GND. After that, a 45 second run at `1.5` motor turns/sec completed with no faults:
+
+```text
+motor_delta: 65.278 turns
+output_delta with 1:36 gearbox: 1.813 turns
+final errors: 0 0 0 0
+```
+
+Speed sweep after adding capacitors completed without faults up to `8.0` motor turns/sec:
+
+```text
+8.0 motor turns/sec = 0.222 output turns/sec with 1:36 gearbox = 13.3 output RPM
+mean velocity: 7.74 motor turns/sec
+iq_avg: 4.37 A
+iq_peak: 10.45 A
+final errors: 0 0 0 0
+total output travel during sweep: 11.13 turns
+```
+
+Practical Hall-only velocity range for bench tests:
+
+```text
+2 to 4 motor turns/sec: smoother and lower current
+6 to 8 motor turns/sec: works after Hall filtering, but rougher due Hall quantization
+```
+
+ODrive velocity units are motor turns/sec. For a `1:36` gearbox:
+
+```text
+36 motor turns = 1 output turn
+1.0 motor turn/sec = 0.0278 output turns/sec
+```
+
+Hall-only control remains visibly quantized at low speed. Final robot setup should still use Hall on motor side for commutation/velocity and MT6701 after the gearbox for load position.
 
 ## Safety
 

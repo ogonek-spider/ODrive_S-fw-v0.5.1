@@ -28,18 +28,24 @@ void Controller::set_error(Error error) {
 
 
 bool Controller::select_encoder(size_t encoder_num) {
-    if (encoder_num < AXIS_COUNT) {
-        Axis* ax = axes[encoder_num];
-        pos_estimate_circular_src_ = &ax->encoder_.pos_circular_;
-        pos_wrap_src_ = &config_.circular_setpoint_range;
-        pos_estimate_linear_src_ = &ax->encoder_.pos_estimate_;
-        pos_estimate_valid_src_ = &ax->encoder_.pos_estimate_valid_;
-        vel_estimate_src_ = &ax->encoder_.vel_estimate_;
-        vel_estimate_valid_src_ = &ax->encoder_.vel_estimate_valid_;
-        return true;
-    } else {
-        return set_error(Controller::ERROR_INVALID_LOAD_ENCODER), false;
+    return select_encoder(encoder_num, encoder_num);
+}
+
+bool Controller::select_encoder(size_t pos_encoder_num, size_t vel_encoder_num) {
+    if (pos_encoder_num >= AXIS_COUNT || vel_encoder_num >= AXIS_COUNT) {
+        set_error(Controller::ERROR_INVALID_LOAD_ENCODER);
+        return false;
     }
+
+    Axis* pos_axis = axes[pos_encoder_num];
+    Axis* vel_axis = axes[vel_encoder_num];
+    pos_estimate_circular_src_ = &pos_axis->encoder_.pos_circular_;
+    pos_wrap_src_ = &config_.circular_setpoint_range;
+    pos_estimate_linear_src_ = &pos_axis->encoder_.pos_estimate_;
+    pos_estimate_valid_src_ = &pos_axis->encoder_.pos_estimate_valid_;
+    vel_estimate_src_ = &vel_axis->encoder_.vel_estimate_;
+    vel_estimate_valid_src_ = &vel_axis->encoder_.vel_estimate_valid_;
+    return true;
 }
 
 void Controller::move_to_pos(float goal_point) {
@@ -242,7 +248,8 @@ bool Controller::update(float* torque_setpoint_output) {
             pos_err = pos_setpoint_ - *pos_estimate_linear;
         }
 
-        vel_des += config_.pos_gain * pos_err;
+        int32_t position_direction = (config_.position_direction < 0) ? -1 : 1;
+        vel_des += position_direction * config_.pos_gain * pos_err;
         // V-shaped gain shedule based on position error
         float abs_pos_err = std::abs(pos_err);
         if (config_.enable_gain_scheduling && abs_pos_err <= config_.gain_scheduling_width) {
