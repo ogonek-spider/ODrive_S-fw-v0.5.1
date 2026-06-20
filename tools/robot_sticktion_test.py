@@ -138,7 +138,7 @@ def parse_args():
              "Position is scaled by --gear-ratio.",
     )
     parser.add_argument(
-        "--gear-ratio", type=float, default=36.0,
+        "--gear-ratio", type=float, default=34.0,
         help="Gearbox reduction (motor turns / output turns). Used with --no-load-encoder.",
     )
     parser.add_argument("--serial-number")

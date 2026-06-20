@@ -28,17 +28,24 @@ earlier bench stage):
   - Split controller feedback: `load_encoder_axis = 1` (joint position),
     `vel_encoder_axis = 0` (motor velocity) — see the split-source patch under
     the MT6701 section.
-- **Gearbox:** 1:36 reduction (36 motor turns = 1 output turn).
+- **Gearbox:** nominal 1:36, but **measured ~34:1** on motor #10
+  (33.5–34.3 motor turns per output turn, consistent across loaded up/down
+  velocity sweeps, 2026-06-20). Use **34** for output-position math derived
+  from the motor encoder; the post-gearbox MT6701 measures true output angle
+  regardless.
 - **Joint (output) torque requirements:**
   - Holding torque: **60 Nm**
   - Moving torque: **~30 Nm**
 - **Reflected motor-shaft torque** (estimate — divide by ratio, then by gearbox
   efficiency η):
-  - Ideal (η = 1): hold 60/36 ≈ 1.67 Nm, move 30/36 ≈ 0.83 Nm.
+  - Ideal (η = 1): hold 60/34 ≈ 1.76 Nm, move 30/34 ≈ 0.88 Nm.
   - With η ≈ 0.7: hold ≈ 2.4 Nm, move ≈ 1.2 Nm.
   - To convert torque to phase current, set `motor.config.torque_constant`
-    correctly (currently a placeholder `1.0` on the bench motor, so Iq commands
-    are unscaled).
+    (Nm per A, motor shaft). **Measured on motor #10 = 0.194 Nm/A** (Kv ≈ 42.5
+    RPM/V, λ ≈ 0.0086 Wb), via back-EMF: spin at several steady speeds and fit
+    `Vq − R·Iq = 2π·pole_pairs·λ·ω`, then `Kt = 1.5·pole_pairs·λ`. Saved to flash
+    2026-06-20 (was a placeholder `1.0` before). Joint-torque check: 60 Nm hold
+    ≈ `60/(34·0.7)/0.194 ≈ 13 A` motor, within `current_lim = 15`.
 
 Bench status: motor #10 (onboard AS5047P on `axis0`) was characterized and its
 commutation offset pinned/saved — see
@@ -150,6 +157,16 @@ odrv0.axis0.controller.config.position_direction = -1
 `position_direction` is a local firmware addition. Use `-1` when positive
 load-encoder motion corresponds to negative motor-side Hall velocity. Keep
 `pos_gain` positive.
+
+With `load_encoder_axis = 1` the position error is in **output turns**, so the
+proportional position loop is ~34× softer than a motor-side loop. The motor-side
+`pos_gain = 30` was far too soft (large slow-settling error); **`pos_gain ≈ 120`**
+tracks joint targets to ~1° (≈ the backlash floor) and settles in <1 s on motor
+#10. Verified 2026-06-20 with `load_encoder_axis=1, vel_encoder_axis=0,
+position_direction=-1`; this split-feedback position config is saved to flash.
+Holding current vs joint angle: ~2.8 A near horizontal (max gravity moment),
+~0.8 A near vertical. Before entering closed loop in position mode, set
+`controller.input_pos = axis1.encoder.pos_estimate` to avoid a jump.
 
 ## Build
 

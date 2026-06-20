@@ -1,0 +1,59 @@
+{
+  "motor_id": "10",
+  "serial_number": "3482345a3034",
+  "fw_version": "0.6.11.post0",
+  "axis": 0,
+  "vbus_v": 30.783618927001953,
+  "fet_temp_start_c": 31.89361000061035,
+  "stored": {
+    "phase_resistance_ohm": 0.2449863851070404,
+    "phase_inductance_H": 0.0006248989957384765,
+    "pole_pairs": 15,
+    "torque_constant": 1.0,
+    "motor_direction": 1,
+    "encoder_mode": 257,
+    "encoder_cpr": 16384,
+    "encoder_direction": 1,
+    "offset_float": 0.949999988079071
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "free_spin": {
+    "status": "FAIL",
+    "runs": [
+      {
+        "cmd_turns_s": 10.0,
+        "mean_abs_iq_a": 1.5087590885162354,
+        "max_abs_iq_a": 2.899665355682373,
+        "actual_vel_turns_s": 10.091995239257812,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 15.0,
+        "mean_abs_iq_a": 1.3171833711862564,
+        "max_abs_iq_a": 3.3257293701171875,
+        "actual_vel_turns_s": 15.302618408203125,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 20.0,
+        "mean_abs_iq_a": 1.4430787324905396,
+        "max_abs_iq_a": 3.0242819786071777,
+        "actual_vel_turns_s": 15.921221923828124,
+        "reached": false
+      }
+    ]
+  },
+  "fet_temp_end_c": 32.40083694458008,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "overall": "FAIL"
+}

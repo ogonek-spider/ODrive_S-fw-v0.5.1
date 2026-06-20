@@ -1,5 +1,13 @@
 # Motor #10 — health report (2026-06-20)
 
+> **CORRECTION (2026-06-20, later): the "36:1 gearbox binding" finding below was
+> a MISATTRIBUTION.** After pinning the commutation offset to 0.95, the fully
+> reassembled 1:36 gearbox spins freely at ~1.5 A and reaches 20 t/s (@40 V) —
+> see `motor-10-full-gearbox-40v-2026-06-20.md`. The 13 A stall was the *bad
+> commutation offset* during that run, not the gearbox. Gearbox is HEALTHY.
+> Stage-1 (1:6) and full-1:36 retests both confirm free rotation. Treat the
+> "gearbox" rows/verdict below as superseded.
+
 > **STATUS: USABLE — offset pinned to 0.95 and saved to flash (2026-06-20).**
 > Boots ready (`is_calibrated`/`is_ready` true, `pre_calibrated=True`,
 > `startup_encoder_offset_calibration=False`). Residual once-per-rev commutation

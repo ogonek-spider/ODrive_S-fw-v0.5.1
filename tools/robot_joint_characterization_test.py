@@ -49,7 +49,7 @@ def parse_args():
         action="store_true",
         help="Use axis1 as the load-side output encoder.",
     )
-    parser.add_argument("--gear-ratio", type=float, default=36.0)
+    parser.add_argument("--gear-ratio", type=float, default=34.0)
     parser.add_argument(
         "--motor-direction",
         type=int,
