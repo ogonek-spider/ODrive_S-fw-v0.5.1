@@ -49,10 +49,11 @@ Touched files:
 Expected ODrive configuration after flashing:
 
 ```python
-odrv0.axis0.encoder.config.mode = 261
 odrv0.axis0.encoder.config.cpr = 16384
 odrv0.axis0.encoder.config.abs_spi_cs_gpio_pin = 6
 odrv0.axis0.encoder.config.enable_phase_interpolation = False
+odrv0.axis0.encoder.config.mode = 261  # Set mode last; it starts SPI sampling.
+odrv0.axis0.encoder.config.pre_calibrated = True
 ```
 
 ### Persistent Encoder Zero and Direction
@@ -101,10 +102,11 @@ odrv0.axis0.encoder.config.mode = ENCODER_MODE_HALL
 odrv0.axis0.encoder.config.cpr = 6 * odrv0.axis0.motor.config.pole_pairs
 
 # axis1: load-side MT6701 after gearbox for joint position
-odrv0.axis1.encoder.config.mode = 261
 odrv0.axis1.encoder.config.cpr = 16384
 odrv0.axis1.encoder.config.abs_spi_cs_gpio_pin = 6
 odrv0.axis1.encoder.config.enable_phase_interpolation = False
+odrv0.axis1.encoder.config.mode = 261  # Set mode last; it starts SPI sampling.
+odrv0.axis1.encoder.config.pre_calibrated = True
 
 # axis0 controller uses load position from axis1 and velocity from axis0
 odrv0.axis0.controller.config.load_encoder_axis = 1
@@ -219,6 +221,19 @@ Could not determine hardware version. Flashing precompiled firmware could lead t
 ```
 
 The local patch changes that abort into a warning so locally built MKS ODrive-S firmware can still be flashed. Do not use this patched environment to flash arbitrary official/precompiled firmware to unknown hardware.
+
+The local `odrivetool restore-config` reconnect helper is also patched in:
+
+```text
+/Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/.venv/lib/python3.13/site-packages/odrive/utils.py
+```
+
+On this MKS firmware, `save_configuration()` resets the USB transport, but
+macOS may not report a USB lost-device event. Upstream `restore-config` waits
+indefinitely for that event after applying and saving the JSON. The local patch
+waits 3 seconds, releases the stale connection if no lost event arrives, and
+reconnects with a 15-second timeout. A successful restore now exits after
+printing `Configuration restored.` instead of hanging.
 
 ## Verification Already Done
 
@@ -348,6 +363,25 @@ ODrive velocity units are motor turns/sec. For a `1:36` gearbox:
 ```
 
 Hall-only control remains visibly quantized at low speed. Final robot setup should still use Hall on motor side for commutation/velocity and MT6701 after the gearbox for load position.
+
+### Robot Load Endurance Script
+
+Run the guarded ten-minute load test with:
+
+```bash
+PYTHONUNBUFFERED=1 .venv/bin/python tools/robot_load_endurance_test.py
+```
+
+The script moves the joint to saved encoder position `0` before printing
+`READY_FOR_WEIGHT`. Its default schedule is a five-minute hold at zero, one
+minute cycling between `0` and `+20` degrees, and a four-minute hold at zero.
+Position zero is the upper endpoint and leg-down is positive. On normal
+completion it slowly moves to `+20` degrees and then enters idle to release the
+load onto the test stand.
+
+Faults and `Ctrl+C` skip the final movement and enter idle immediately.
+Override the normal release pose with `--down-degrees`, and override its speed
+with `--release-velocity-limit`.
 
 ## Safety
 

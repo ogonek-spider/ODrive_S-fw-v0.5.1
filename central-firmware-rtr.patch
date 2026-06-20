@@ -1,0 +1,39 @@
+diff --git a/src/usbtwai.cpp b/src/usbtwai.cpp
+--- a/src/usbtwai.cpp
++++ b/src/usbtwai.cpp
+@@ -16,7 +16,8 @@ static int hexNibble(char value) {
+ }
+ 
+ static bool parseSlcanFrame(const char* input, twaiFrameWithBuffer& frame) {
+-    if (!input || input[0] != 't') return false;
++    if (!input || (input[0] != 't' && input[0] != 'r')) return false;
++    bool isRemote = input[0] == 'r';
+ 
+     char idString[4] = {input[1], input[2], input[3], '\0'};
+     char* idEnd = nullptr;
+@@ -28,8 +29,9 @@ static bool parseSlcanFrame(const char* input, twaiFrameWithBuffer& frame) {
+ 
+     frame.frame.header.id = id;
+     frame.frame.header.dlc = dlc;
+-    frame.frame.buffer_len = dlc;
+-    for (int i = 0; i < dlc; ++i) {
++    frame.frame.header.rtr = isRemote;
++    frame.frame.buffer_len = isRemote ? 0 : dlc;
++    for (int i = 0; !isRemote && i < dlc; ++i) {
+         int high = hexNibble(input[5 + i * 2]);
+         int low = hexNibble(input[6 + i * 2]);
+         if (high < 0 || low < 0) return false;
+@@ -109,6 +111,7 @@ void USBTwai::twaiRxTask() {
+                 buffer,
+                 sizeof(buffer),
+-                "t%03lX%01X",
++                "%c%03lX%01X",
++                rxFrame.frame.header.rtr ? 'r' : 't',
+                 rxFrame.frame.header.id & 0x7ff,
+                 rxFrame.frame.header.dlc
+             );
+@@ -117,3 +120,3 @@ void USBTwai::twaiRxTask() {
+-            for (int i = 0; i < rxFrame.frame.header.dlc && filled < sizeof(buffer); ++i) {
++            for (int i = 0; !rxFrame.frame.header.rtr && i < rxFrame.frame.header.dlc && filled < sizeof(buffer); ++i) {
+                 filled += snprintf(buffer + filled, sizeof(buffer) - filled, "%02X", rxFrame.buffer[i]);
+             }

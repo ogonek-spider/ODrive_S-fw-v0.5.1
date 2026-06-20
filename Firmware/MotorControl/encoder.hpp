@@ -38,10 +38,22 @@ public:
 
         // custom setters
         Encoder* parent = nullptr;
-        void set_mode(Mode value) { mode = value; parent->set_mode(value); }
+        void set_mode(Mode value) {
+            if (mode == value && parent->mode_ == value) {
+                return;
+            }
+            mode = value;
+            parent->set_mode(value);
+        }
         void set_use_index(bool value) { use_index = value; parent->set_idx_subscribe(); }
         void set_find_idx_on_lockin_only(bool value) { find_idx_on_lockin_only = value; parent->set_idx_subscribe(); }
-        void set_abs_spi_cs_gpio_pin(uint16_t value) { abs_spi_cs_gpio_pin = value; parent->abs_spi_cs_pin_init(); }
+        void set_abs_spi_cs_gpio_pin(uint16_t value) {
+            if (abs_spi_cs_gpio_pin == value) {
+                return;
+            }
+            abs_spi_cs_gpio_pin = value;
+            parent->abs_spi_cs_pin_init();
+        }
         void set_pre_calibrated(bool value) { pre_calibrated = value; parent->check_pre_calibrated(); }
         void set_bandwidth(float value) { bandwidth = value; parent->update_pll_gains(); }
         void set_direction(int32_t value) {

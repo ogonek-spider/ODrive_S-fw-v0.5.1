@@ -1,0 +1,88 @@
+diff --git a/src/usbtwai.cpp b/src/usbtwai.cpp
+index 33ea64a..8b02fb2 100644
+--- a/src/usbtwai.cpp
++++ b/src/usbtwai.cpp
+@@ -4,6 +4,37 @@
+ #include "usbtwai.h"
+ #include <memory.h>
+ #include "esp_task.h"
++#include <stdlib.h>
++
++static int hexNibble(char value) {
++    if (value >= '0' && value <= '9') return value - '0';
++    if (value >= 'A' && value <= 'F') return value - 'A' + 10;
++    if (value >= 'a' && value <= 'f') return value - 'a' + 10;
++    return -1;
++}
++
++static bool parseSlcanFrame(const char* input, twaiFrameWithBuffer& frame) {
++    if (!input || input[0] != 't') return false;
++
++    char idString[4] = {input[1], input[2], input[3], '\0'};
++    char* idEnd = nullptr;
++    unsigned long id = strtoul(idString, &idEnd, 16);
++    int dlc = hexNibble(input[4]);
++    if (!idEnd || *idEnd != '\0' || id > 0x7ff || dlc < 0 || dlc > 8) {
++        return false;
++    }
++
++    frame.frame.header.id = id;
++    frame.frame.header.dlc = dlc;
++    frame.frame.buffer_len = dlc;
++    for (int i = 0; i < dlc; ++i) {
++        int high = hexNibble(input[5 + i * 2]);
++        int low = hexNibble(input[6 + i * 2]);
++        if (high < 0 || low < 0) return false;
++        frame.buffer[i] = (high << 4) | low;
++    }
++    return true;
++}
+ 
+ void USBTwai::start(gpio_num_t tx_pin, gpio_num_t rx_pin, bool selfTest) {
+     _rxQueue = xQueueCreate(RX_Q_SIZE, sizeof(twaiFrameWithBuffer));
+@@ -72,14 +103,22 @@ void USBTwai::stop() {
+ 
+ void USBTwai::twaiRxTask() {
+     twaiFrameWithBuffer rxFrame;
+-    CanMessage msg;
+     char buffer[100];
+ 
+     for(;;) {        
+         if (xQueueReceive(_rxQueue, &rxFrame, portMAX_DELAY) == pdTRUE) {
+-            canMsgFromTwaiFrame(rxFrame.frame, msg);
+-            canMsgToSlcan(msg, buffer, 100);
+-            printf(buffer);
++            size_t filled = snprintf(
++                buffer,
++                sizeof(buffer),
++                "t%03lX%01X",
++                rxFrame.frame.header.id & 0x7ff,
++                rxFrame.frame.header.dlc
++            );
++            for (int i = 0; i < rxFrame.frame.header.dlc && filled < sizeof(buffer); ++i) {
++                filled += snprintf(buffer + filled, sizeof(buffer) - filled, "%02X", rxFrame.buffer[i]);
++            }
++            snprintf(buffer + filled, sizeof(buffer) - filled, "\r");
++            printf("%s", buffer);
+         }
+     }
+ }
+@@ -88,15 +127,11 @@ void USBTwai::twaiRxTask() {
+ void USBTwai::serialReaderTask() {
+     const constexpr size_t INPUT_BUFFER_SIZE = 256;
+     char inputBuffer[INPUT_BUFFER_SIZE + 1];
+-    CanMessage msg;
+     for(;;) {
+         if (fgets(inputBuffer, INPUT_BUFFER_SIZE, stdin) != NULL) { 
+-            // ESP_LOGE(TAG, "serial input %s", inputBuffer);
+-            memset(&msg, 0, sizeof(msg));
+-            if (canMsgFromSlcan(inputBuffer, msg) && msg.type != MessageType::NOT_A_COMMAND) {
+-                canMsgToString(msg, inputBuffer, INPUT_BUFFER_SIZE);
+-                // ESP_LOGE(TAG, "Sending CAN msg %s", inputBuffer);
+-                sendCanMsg(msg);
++            twaiFrameWithBuffer frame;
++            if (parseSlcanFrame(inputBuffer, frame)) {
++                ESP_ERROR_CHECK(twai_node_transmit(node_hdl, &frame.frame, 0));
+             } else {
+                 ESP_LOGE(TAG, "Got wrong input from serial '%s'", inputBuffer);
+             }
