@@ -1,0 +1,283 @@
+{
+  "timestamp_utc": "2026-06-20T15:51:52.092879+00:00",
+  "feedback": "motor",
+  "gear_ratio": 36.0,
+  "travel_degrees": 45.0,
+  "motor_direction": 1,
+  "auto_tune_speed": false,
+  "tune_repetitions": 2,
+  "max_tune_iterations": 4,
+  "stiction": [],
+  "speed": [
+    {
+      "motor_speed_turns_s": 10.0,
+      "output_speed_deg_s": 100.0,
+      "passed": false,
+      "repetitions": 6,
+      "stop_leads_deg": {
+        "forward": 6.5,
+        "reverse": 6.5
+      },
+      "runs": [
+        {
+          "repetition": 1,
+          "forward_1": {
+            "start_deg": -5.8412551880437924e-05,
+            "target_deg": 45.0,
+            "final_deg": 48.23700904846192,
+            "error_deg": 3.237009048461921,
+            "overshoot_deg": 3.238701820373528,
+            "duration_s": 1.2336615410167724,
+            "peak_iq_a": 6.569559097290039,
+            "peak_motor_speed_turns_s": 9.323959350585938,
+            "peak_fet_c": 35.23982620239258,
+            "stop_lead_degrees": 6.5
+          },
+          "reverse": {
+            "start_deg": 48.23651790618897,
+            "target_deg": 0.0,
+            "final_deg": -1.9910252094268799,
+            "error_deg": -1.9910252094268799,
+            "overshoot_deg": 1.991140842437744,
+            "duration_s": 1.4921198750380427,
+            "peak_iq_a": 5.595808506011963,
+            "peak_motor_speed_turns_s": 7.94403076171875,
+            "peak_fet_c": 35.330345153808594,
+            "stop_lead_degrees": 6.5
+          },
+          "forward_2": {
+            "start_deg": -1.9910097122192378,
+            "target_deg": 45.0,
+            "final_deg": 46.872701644897454,
+            "error_deg": 1.8727016448974538,
+            "overshoot_deg": 1.8807458877563477,
+            "duration_s": 1.2790109170600772,
+            "peak_iq_a": 5.666293621063232,
+            "peak_motor_speed_turns_s": 8.436737060546875,
+            "peak_fet_c": 35.51102066040039,
+            "stop_lead_degrees": 6.5
+          }
+        },
+        {
+          "repetition": 2,
+          "forward_1": {
+            "start_deg": 3.0787873268127437,
+            "target_deg": 45.0,
+            "final_deg": 46.765060424804695,
+            "error_deg": 1.7650604248046946,
+            "overshoot_deg": 1.7720556259155344,
+            "duration_s": 1.3781163750682026,
+            "peak_iq_a": 6.889235019683838,
+            "peak_motor_speed_turns_s": 8.024673461914062,
+            "peak_fet_c": 35.69121551513672,
+            "stop_lead_degrees": 6.5
+          },
+          "reverse": {
+            "start_deg": 46.764678955078125,
+            "target_deg": 0.0,
+            "final_deg": -1.946357488632203,
+            "error_deg": -1.946357488632203,
+            "overshoot_deg": 1.9475293159484874,
+            "duration_s": 1.443166624987498,
+            "peak_iq_a": 6.08164644241333,
+            "peak_motor_speed_turns_s": 7.793731689453125,
+            "peak_fet_c": 35.811092376708984,
+            "stop_lead_degrees": 6.5
+          },
+          "forward_2": {
+            "start_deg": -1.9460260868072508,
+            "target_deg": 45.0,
+            "final_deg": 46.79693698883056,
+            "error_deg": 1.7969369888305593,
+            "overshoot_deg": 1.8075132369995046,
+            "duration_s": 1.4017846249043941,
+            "peak_iq_a": 6.770817279815674,
+            "peak_motor_speed_turns_s": 8.448715209960938,
+            "peak_fet_c": 35.870948791503906,
+            "stop_lead_degrees": 6.5
+          }
+        },
+        {
+          "repetition": 3,
+          "forward_1": {
+            "start_deg": 3.022187948226928,
+            "target_deg": 45.0,
+            "final_deg": 46.798491477966316,
+            "error_deg": 1.7984914779663157,
+            "overshoot_deg": 1.809067726135261,
+            "duration_s": 1.303264459129423,
+            "peak_iq_a": 6.798031330108643,
+            "peak_motor_speed_turns_s": 7.977447509765625,
+            "peak_fet_c": 35.96063995361328,
+            "stop_lead_degrees": 6.5
+          },
+          "reverse": {
+            "start_deg": 46.797976493835456,
+            "target_deg": 0.0,
+            "final_deg": -0.7301187515258789,
+            "error_deg": -0.7301187515258789,
+            "overshoot_deg": 0.7340252399444593,
+            "duration_s": 1.253300999989733,
+            "peak_iq_a": 5.933944225311279,
+            "peak_motor_speed_turns_s": 7.8078460693359375,
+            "peak_fet_c": 36.02037048339844,
+            "stop_lead_degrees": 6.5
+          },
+          "forward_2": {
+            "start_deg": -0.730087757110597,
+            "target_deg": 45.0,
+            "final_deg": 46.82233810424805,
+            "error_deg": 1.8223381042480469,
+            "overshoot_deg": 1.8339300155639577,
+            "duration_s": 1.3290106658823788,
+            "peak_iq_a": 7.082767963409424,
+            "peak_motor_speed_turns_s": 8.317794799804688,
+            "peak_fet_c": 36.16947555541992,
+            "stop_lead_degrees": 6.5
+          }
+        },
+        {
+          "repetition": 4,
+          "forward_1": {
+            "start_deg": 3.182034492492675,
+            "target_deg": 45.0,
+            "final_deg": 46.76805973052979,
+            "error_deg": 1.7680597305297923,
+            "overshoot_deg": 1.776285171508789,
+            "duration_s": 1.3405510000884533,
+            "peak_iq_a": 7.319458484649658,
+            "peak_motor_speed_turns_s": 8.052749633789062,
+            "peak_fet_c": 36.258792877197266,
+            "stop_lead_degrees": 6.5
+          },
+          "reverse": {
+            "start_deg": 46.76764965057372,
+            "target_deg": 0.0,
+            "final_deg": -0.7357990741729742,
+            "error_deg": -0.7357990741729742,
+            "overshoot_deg": 0.7408344745635984,
+            "duration_s": 1.248049666872248,
+            "peak_iq_a": 5.636411190032959,
+            "peak_motor_speed_turns_s": 7.837066650390625,
+            "peak_fet_c": 36.31827163696289,
+            "stop_lead_degrees": 6.5
+          },
+          "forward_2": {
+            "start_deg": -0.7355570793151867,
+            "target_deg": 45.0,
+            "final_deg": 46.81811332702636,
+            "error_deg": 1.81811332702636,
+            "overshoot_deg": 1.8289661407470703,
+            "duration_s": 1.3150047091767192,
+            "peak_iq_a": 6.32928466796875,
+            "peak_motor_speed_turns_s": 8.231201171875,
+            "peak_fet_c": 36.22903060913086,
+            "stop_lead_degrees": 6.5
+          }
+        },
+        {
+          "repetition": 5,
+          "forward_1": {
+            "start_deg": 3.1593918800353986,
+            "target_deg": 45.0,
+            "final_deg": 46.75551414489746,
+            "error_deg": 1.755514144897461,
+            "overshoot_deg": 1.761155128479011,
+            "duration_s": 1.386731042061001,
+            "peak_iq_a": 7.271530628204346,
+            "peak_motor_speed_turns_s": 8.043289184570312,
+            "peak_fet_c": 36.40739822387695,
+            "stop_lead_degrees": 6.5
+          },
+          "reverse": {
+            "start_deg": 46.754961013793945,
+            "target_deg": 0.0,
+            "final_deg": -0.07259130477905273,
+            "error_deg": -0.07259130477905273,
+            "overshoot_deg": 0.07727622985839927,
+            "duration_s": 1.1085234170313925,
+            "peak_iq_a": 5.854641437530518,
+            "peak_motor_speed_turns_s": 7.8589630126953125,
+            "peak_fet_c": 36.46675491333008,
+            "stop_lead_degrees": 6.5
+          },
+          "forward_2": {
+            "start_deg": -0.07239818572998047,
+            "target_deg": 45.0,
+            "final_deg": 46.83926582336426,
+            "error_deg": 1.8392658233642578,
+            "overshoot_deg": 1.8489360809326243,
+            "duration_s": 1.2803110000677407,
+            "peak_iq_a": 6.977774620056152,
+            "peak_motor_speed_turns_s": 8.180923461914062,
+            "peak_fet_c": 36.40739822387695,
+            "stop_lead_degrees": 6.5
+          }
+        },
+        {
+          "repetition": 6,
+          "forward_1": {
+            "start_deg": 3.114068508148194,
+            "target_deg": 45.0,
+            "final_deg": 46.926121711730964,
+            "error_deg": 1.9261217117309641,
+            "overshoot_deg": 1.9285392761230398,
+            "duration_s": 1.1600243339780718,
+            "peak_iq_a": 7.371592998504639,
+            "peak_motor_speed_turns_s": 8.034286499023438,
+            "peak_fet_c": 36.49641799926758,
+            "stop_lead_degrees": 6.5
+          },
+          "reverse": {
+            "start_deg": 46.92583560943603,
+            "target_deg": 0.0,
+            "final_deg": -0.7349026203155529,
+            "error_deg": -0.7349026203155529,
+            "overshoot_deg": 0.7385563850402838,
+            "duration_s": 1.247992750024423,
+            "peak_iq_a": 5.68907356262207,
+            "peak_motor_speed_turns_s": 7.678680419921875,
+            "peak_fet_c": 36.49641799926758,
+            "stop_lead_degrees": 6.5
+          },
+          "forward_2": {
+            "start_deg": -0.7347869873046888,
+            "target_deg": 45.0,
+            "final_deg": 46.8369722366333,
+            "error_deg": 1.8369722366333008,
+            "overshoot_deg": 1.8459796905517578,
+            "duration_s": 1.2899712920188904,
+            "peak_iq_a": 6.711047649383545,
+            "peak_motor_speed_turns_s": 8.173980712890625,
+            "peak_fet_c": 36.644535064697266,
+            "stop_lead_degrees": 6.5
+          }
+        }
+      ],
+      "forward_mean_s": 1.3081201633710104,
+      "forward_worst_s": 1.4017846249043941,
+      "reverse_mean_s": 1.2988588889905561,
+      "reverse_worst_s": 1.4921198750380427,
+      "all_moves_mean_s": 1.305033071910859,
+      "peak_iq_a": 7.371592998504639,
+      "failures": [
+        {
+          "repetition": 1,
+          "leg": "forward_1",
+          "error_deg": 3.237009048461921,
+          "overshoot_deg": 3.238701820373528
+        }
+      ],
+      "forward_mean_error_deg": 1.9363820552825939,
+      "reverse_mean_error_deg": -1.0351324081420903,
+      "tuning_history": []
+    }
+  ],
+  "final_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "final_output_deg": 46.75478935241699
+}
