@@ -1,0 +1,217 @@
+{
+  "timestamp_utc": "2026-06-20T21:15:18.542813+00:00",
+  "test": "load-cycle",
+  "gear_ratio": 34.0,
+  "torque_constant": 0.1940000057220459,
+  "cycles": 10,
+  "lift_degrees": 30.0,
+  "lift_sign": 1,
+  "cycle_vel_turns_s": 4.0,
+  "moves": [
+    {
+      "label": "to-zero",
+      "target_deg": 0.0,
+      "final_deg": -0.008,
+      "duration_s": 3.337,
+      "peak_iq_a": 3.269,
+      "peak_output_torque_nm": 21.56,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle1-up",
+      "target_deg": 30.0,
+      "final_deg": 30.035,
+      "duration_s": 0.998,
+      "peak_iq_a": 9.825,
+      "peak_output_torque_nm": 64.8,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle1-down",
+      "target_deg": 0.0,
+      "final_deg": -0.17,
+      "duration_s": 1.101,
+      "peak_iq_a": 10.937,
+      "peak_output_torque_nm": 72.14,
+      "overshoot_deg": 0.14
+    },
+    {
+      "label": "cycle2-up",
+      "target_deg": 30.0,
+      "final_deg": 30.21,
+      "duration_s": 0.941,
+      "peak_iq_a": 6.514,
+      "peak_output_torque_nm": 42.97,
+      "overshoot_deg": 0.184
+    },
+    {
+      "label": "cycle2-down",
+      "target_deg": 0.0,
+      "final_deg": 0.408,
+      "duration_s": 1.067,
+      "peak_iq_a": 10.898,
+      "peak_output_torque_nm": 71.88,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle3-up",
+      "target_deg": 30.0,
+      "final_deg": 30.063,
+      "duration_s": 0.924,
+      "peak_iq_a": 6.463,
+      "peak_output_torque_nm": 42.63,
+      "overshoot_deg": 0.035
+    },
+    {
+      "label": "cycle3-down",
+      "target_deg": 0.0,
+      "final_deg": 0.099,
+      "duration_s": 1.081,
+      "peak_iq_a": 10.529,
+      "peak_output_torque_nm": 69.45,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle4-up",
+      "target_deg": 30.0,
+      "final_deg": 29.636,
+      "duration_s": 0.909,
+      "peak_iq_a": 6.411,
+      "peak_output_torque_nm": 42.29,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle4-down",
+      "target_deg": 0.0,
+      "final_deg": 0.285,
+      "duration_s": 1.104,
+      "peak_iq_a": 10.302,
+      "peak_output_torque_nm": 67.95,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle5-up",
+      "target_deg": 30.0,
+      "final_deg": 29.583,
+      "duration_s": 0.92,
+      "peak_iq_a": 6.58,
+      "peak_output_torque_nm": 43.4,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle5-down",
+      "target_deg": 0.0,
+      "final_deg": -0.091,
+      "duration_s": 1.032,
+      "peak_iq_a": 10.351,
+      "peak_output_torque_nm": 68.28,
+      "overshoot_deg": 0.051
+    },
+    {
+      "label": "cycle6-up",
+      "target_deg": 30.0,
+      "final_deg": 29.805,
+      "duration_s": 0.933,
+      "peak_iq_a": 6.784,
+      "peak_output_torque_nm": 44.75,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle6-down",
+      "target_deg": 0.0,
+      "final_deg": 0.325,
+      "duration_s": 1.004,
+      "peak_iq_a": 10.267,
+      "peak_output_torque_nm": 67.72,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle7-up",
+      "target_deg": 30.0,
+      "final_deg": 29.652,
+      "duration_s": 0.926,
+      "peak_iq_a": 6.879,
+      "peak_output_torque_nm": 45.38,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle7-down",
+      "target_deg": 0.0,
+      "final_deg": -0.039,
+      "duration_s": 1.0,
+      "peak_iq_a": 10.91,
+      "peak_output_torque_nm": 71.96,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle8-up",
+      "target_deg": 30.0,
+      "final_deg": 29.564,
+      "duration_s": 0.931,
+      "peak_iq_a": 6.364,
+      "peak_output_torque_nm": 41.97,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle8-down",
+      "target_deg": 0.0,
+      "final_deg": 0.181,
+      "duration_s": 0.982,
+      "peak_iq_a": 10.727,
+      "peak_output_torque_nm": 70.76,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle9-up",
+      "target_deg": 30.0,
+      "final_deg": 29.619,
+      "duration_s": 0.908,
+      "peak_iq_a": 6.563,
+      "peak_output_torque_nm": 43.29,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle9-down",
+      "target_deg": 0.0,
+      "final_deg": 0.025,
+      "duration_s": 1.075,
+      "peak_iq_a": 10.186,
+      "peak_output_torque_nm": 67.19,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle10-up",
+      "target_deg": 30.0,
+      "final_deg": 29.597,
+      "duration_s": 0.911,
+      "peak_iq_a": 8.031,
+      "peak_output_torque_nm": 52.97,
+      "overshoot_deg": 0.0
+    },
+    {
+      "label": "cycle10-down",
+      "target_deg": 0.0,
+      "final_deg": 0.254,
+      "duration_s": 1.069,
+      "peak_iq_a": 10.463,
+      "peak_output_torque_nm": 69.01,
+      "overshoot_deg": 0.0
+    }
+  ],
+  "summary": {
+    "up_peak_torque_max_nm": 64.8,
+    "up_peak_torque_mean_nm": 46.45,
+    "down_peak_torque_max_nm": 72.14,
+    "up_time_mean_s": 0.93,
+    "max_overshoot_deg": 0.184
+  },
+  "final_errors": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "final_load_deg": 0.05
+}
