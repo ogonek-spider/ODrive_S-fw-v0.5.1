@@ -13,6 +13,38 @@ This repository is the MKS ODrive-S firmware source based on ODrive firmware v0.
   - `CONFIG_UART_PROTOCOL=ascii`
   - `CONFIG_DEBUG=false`
 
+## Target Joint Architecture and Requirements
+
+Final per-joint design (the Hall-on-motor setup in "Motor Bringup Notes" was an
+earlier bench stage):
+
+- **Dual magnetic encoder feedback:**
+  - **Motor-shaft encoder (`axis0`):** onboard AS5047P magnetic absolute encoder
+    (`ENCODER_MODE_SPI_ABS_AMS = 257`, cpr 16384, CS pin 7) for FOC commutation
+    and velocity.
+  - **Joint-side encoder (`axis1`):** MT6701 magnetic absolute encoder mounted
+    after the gearbox (`ENCODER_MODE_SPI_ABS_MT6701 = 261`, cpr 16384, CS pin 6)
+    for load/joint position.
+  - Split controller feedback: `load_encoder_axis = 1` (joint position),
+    `vel_encoder_axis = 0` (motor velocity) — see the split-source patch under
+    the MT6701 section.
+- **Gearbox:** 1:36 reduction (36 motor turns = 1 output turn).
+- **Joint (output) torque requirements:**
+  - Holding torque: **60 Nm**
+  - Moving torque: **~30 Nm**
+- **Reflected motor-shaft torque** (estimate — divide by ratio, then by gearbox
+  efficiency η):
+  - Ideal (η = 1): hold 60/36 ≈ 1.67 Nm, move 30/36 ≈ 0.83 Nm.
+  - With η ≈ 0.7: hold ≈ 2.4 Nm, move ≈ 1.2 Nm.
+  - To convert torque to phase current, set `motor.config.torque_constant`
+    correctly (currently a placeholder `1.0` on the bench motor, so Iq commands
+    are unscaled).
+
+Bench status: motor #10 (onboard AS5047P on `axis0`) was characterized and its
+commutation offset pinned/saved — see
+`spider-motor-tools/reports/motor-10-health-2026-06-20.md` and the
+`spider-motor-tools/` health tooling.
+
 ## Local Modification: MT6701 SSI Encoder
 
 This repo has a local patch adding MT6701 absolute encoder support:

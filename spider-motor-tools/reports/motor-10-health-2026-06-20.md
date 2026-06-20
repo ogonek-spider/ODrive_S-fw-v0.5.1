@@ -1,5 +1,11 @@
 # Motor #10 — health report (2026-06-20)
 
+> **STATUS: USABLE — offset pinned to 0.95 and saved to flash (2026-06-20).**
+> Boots ready (`is_calibrated`/`is_ready` true, `pre_calibrated=True`,
+> `startup_encoder_offset_calibration=False`). Residual once-per-rev commutation
+> error remains but is negligible behind the 36:1 gearbox. See "Resolution" below.
+
+
 - **ODrive serial:** 3482345a3034
 - **Firmware:** fw-v0.5.1-mt6701
 - **Bus voltage:** 31.2 V
@@ -83,6 +89,34 @@ intermittent-offset fault above.
    confirm offset spread < 0.05 rad.
 2. **Inspect the 36:1 gearbox** for binding (it added ~10 A of load).
 3. Re-run the no-load speed test and compare to `max-speed-tuned.json`.
+
+## Resolution (2026-06-20)
+
+The once-per-rev geometric error (a tilt/eccentricity in the sense-magnet mount,
+not slip — the magnet is rigidly coupled to the rotor) could not be fully removed
+mechanically. It was judged **acceptable for this application** and the config
+was frozen:
+
+- Pinned `encoder.config.offset_float = 0.95` — the midpoint of the two offset
+  clusters (symmetric worst-case commutation error).
+- `motor/encoder.config.pre_calibrated = True`, `startup_encoder_offset_calibration
+  = False` → boots ready on the fixed offset, never re-rolls the calibration.
+- **`save_configuration()` — first flash write; verified persisted across a reboot**
+  (`offset_float=0.95`, `is_calibrated/is_ready=True`, errors 0).
+
+Why it's acceptable:
+- Running current is nearly identical (1.05–1.12 A @ 5 t/s no-load) across the whole
+  0.60–1.30 rad offset range — the motor is insensitive to which offset is pinned.
+- The residual ~1.3° mechanical once-per-rev error is on the motor shaft; behind
+  36:1 that's ~0.04° at the joint. Only effect is a few-percent commutation torque
+  ripple, filtered by the gearbox + leg.
+
+**Direction caveat:** the saved `motor.config.direction = 1` (set by calibration;
+the pre-existing flash had `-1` from the "direction sign change" commit, which was
+non-functional with the stale offset). `controller.config.position_direction = 1`
+is unchanged. Verify the joint moves the expected way for a positive command; if
+reversed, flip `position_direction` (or the command sign in robot code) — do **not**
+change `motor.config.direction`, which must stay +1 for valid commutation.
 
 ## Config state
 
