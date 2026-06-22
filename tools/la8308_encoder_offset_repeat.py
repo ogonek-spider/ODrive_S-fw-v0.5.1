@@ -20,6 +20,17 @@ the last run (the signal that actually catches a slipping magnet). Run this once
 to set a baseline, apply a load / spin, then run again -- persistent drift means
 a mechanical fix (re-bond the magnet), not a calibration problem.
 
+For an absolute encoder the commutation-relevant electrical offset should not
+depend on where the rotor is parked -- but any magnet eccentricity / air-gap
+variation makes the cal's lockin sweep (a partial mechanical revolution)
+average a slightly different arc depending on its start position. So a rotor
+hand-moved between sessions can read tens of degrees apart with NO slip. To make
+the cross-session check meaningful, by default we PARK the rotor at a fixed
+absolute angle (--park-deg, closed-loop position) before each cal so every sweep
+starts from the same arc. Pass --no-park for the legacy behavior. The valid slip
+signal is then drift across a controlled LOAD event with parking on, not a bare
+hand-moved comparison.
+
 Bench-safe for a FREE shaft (the rotor turns a few slow revolutions per run).
 Does NOT write to flash. The last calibration is left live in RAM so you can
 immediately re-characterize; pass --save to persist it.
@@ -27,6 +38,7 @@ immediately re-characterize; pass --save to persist it.
 
 import argparse
 import json
+import math
 import os
 import statistics
 import sys
@@ -39,9 +51,12 @@ sys.path = [p for p in sys.path if p not in ("", ".", os.getcwd(), _SCRIPT_DIR)]
 
 import odrive
 from odrive.enums import (
+    AXIS_STATE_CLOSED_LOOP_CONTROL,
     AXIS_STATE_ENCODER_OFFSET_CALIBRATION,
     AXIS_STATE_MOTOR_CALIBRATION,
     AXIS_STATE_IDLE,
+    CONTROL_MODE_POSITION_CONTROL,
+    INPUT_MODE_PASSTHROUGH,
 )
 
 # Default cross-session history file (per-serial last electrical offset).
@@ -65,6 +80,17 @@ def parse_args():
                    help="Skip the cross-session drift check and history write.")
     p.add_argument("--drift-threshold-deg", type=float, default=5.0,
                    help="Flag cross-session electrical drift above this (deg).")
+    p.add_argument("--park-deg", type=float, default=0.0,
+                   help="Park the rotor at this absolute mechanical angle (deg "
+                        "within one turn) before EACH cal, so the lockin sweep "
+                        "starts from the same arc and cross-session offsets are "
+                        "comparable. Needs a roughly-valid live offset to move.")
+    p.add_argument("--no-park", action="store_true",
+                   help="Do not park the rotor before each cal (legacy behavior).")
+    p.add_argument("--park-vel", type=float, default=2.0,
+                   help="Velocity limit (motor turns/s) while parking.")
+    p.add_argument("--park-timeout", type=float, default=6.0,
+                   help="Seconds to wait for the park move to settle.")
     return p.parse_args()
 
 
@@ -79,6 +105,47 @@ def wait_idle(axis, timeout):
     while axis.current_state != AXIS_STATE_IDLE and time.monotonic() < deadline:
         time.sleep(0.2)
     return axis.current_state == AXIS_STATE_IDLE
+
+
+def park_rotor(axis, park_frac, vel_limit, timeout):
+    """Drive the rotor (closed-loop position) to the nearest absolute angle whose
+    fractional turn == park_frac, so every cal's lockin sweep starts from the
+    same physical arc. Returns the settled fractional position, or None on
+    failure (e.g. encoder not ready / closed-loop entry refused).
+
+    Uses whatever commutation offset is currently live -- even ~20 deg off still
+    produces ~94% torque, plenty to creep the free shaft into position.
+    """
+    c, e = axis.controller, axis.encoder
+    if not bool(e.is_ready):
+        return None
+    for attr in (axis, axis.motor, axis.encoder, axis.controller):
+        try:
+            attr.error = 0
+        except Exception:
+            pass
+    c.config.control_mode = CONTROL_MODE_POSITION_CONTROL
+    c.config.input_mode = INPUT_MODE_PASSTHROUGH
+    c.config.vel_limit = max(vel_limit, 1.0)
+    axis.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
+    time.sleep(0.3)
+    if axis.current_state != AXIS_STATE_CLOSED_LOOP_CONTROL:
+        axis.requested_state = AXIS_STATE_IDLE
+        return None
+    cur = float(e.pos_estimate)
+    base = math.floor(cur) + park_frac
+    target = min((base - 1.0, base, base + 1.0), key=lambda t: abs(t - cur))
+    c.input_pos = target
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if abs(float(e.pos_estimate) - target) < 0.01:
+            break
+        time.sleep(0.05)
+    time.sleep(0.3)                       # let it hold/settle at the target
+    settled = float(e.pos_estimate) % 1.0
+    axis.requested_state = AXIS_STATE_IDLE
+    time.sleep(0.2)
+    return settled
 
 
 def circ_diff(a, b, period):
@@ -142,9 +209,23 @@ def main():
         print(f"  R={float(m.config.phase_resistance):.5f} ohm  "
               f"L={float(m.config.phase_inductance)*1e6:.1f} uH  ok", flush=True)
 
+    c = axis.controller
+    saved_cfg = (c.config.control_mode, c.config.input_mode, c.config.vel_limit)
+    park_frac = (args.park_deg % 360.0) / 360.0
+
     results = []
-    print(f"\n=== running ENCODER_OFFSET_CALIBRATION x{args.runs} ===", flush=True)
+    print(f"\n=== running ENCODER_OFFSET_CALIBRATION x{args.runs} "
+          f"({'park@%.0fdeg' % args.park_deg if not args.no_park else 'no-park'}) ===",
+          flush=True)
     for i in range(1, args.runs + 1):
+        if not args.no_park:
+            settled = park_rotor(axis, park_frac, args.park_vel, args.park_timeout)
+            if settled is None:
+                print(f"  run {i}: park SKIPPED (encoder not ready / no closed-loop)",
+                      flush=True)
+            else:
+                print(f"  run {i}: parked at {settled*360.0:6.2f}deg "
+                      f"(target {args.park_deg:.1f})", flush=True)
         try:
             dev.clear_errors()
         except Exception:
@@ -168,6 +249,8 @@ def main():
         time.sleep(0.4)
 
     axis.requested_state = AXIS_STATE_IDLE
+    # restore controller config we touched while parking
+    (c.config.control_mode, c.config.input_mode, c.config.vel_limit) = saved_cfg
 
     good = [r for r in results if r["ok"]]
     print("\n=== SUMMARY ===", flush=True)

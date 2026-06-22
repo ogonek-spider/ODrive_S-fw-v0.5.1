@@ -59,6 +59,15 @@ def parse_args():
                    default=[5.0, 10.0, 15.0, 20.0],
                    help="Free-spin / back-EMF speeds (motor turns/s).")
     p.add_argument("--characterize", action="store_true")
+    p.add_argument("--spin-soak", action="store_true",
+                   help="Sustained free-spin: cycle through --soak-speeds for "
+                        "--soak-seconds total, logging vel/Iq/FET and watching "
+                        "for magnet-slip (lost tracking / Iq saturation).")
+    p.add_argument("--soak-seconds", type=float, default=60.0,
+                   help="Total sustained-spin duration, split across soak speeds.")
+    p.add_argument("--soak-speeds", type=float, nargs="+", default=None,
+                   help="Speeds (motor turns/s) for --spin-soak; "
+                        "defaults to --spin-speeds.")
     p.add_argument("--tune", action="store_true")
     p.add_argument("--vel-step", type=float, default=8.0,
                    help="Velocity step amplitude for vel-gain tuning (turns/s).")
@@ -164,6 +173,87 @@ def characterize(axis, args, R, pole_pairs):
               f"Kt={kt:.4f} Nm/A  Kv={kv:.1f} RPM/V", flush=True)
     return {"status": "PASS", "runs": runs,
             "flux_linkage_wb": lam, "kt_measured": kt, "kv_measured": kv}
+
+
+def spin_soak(axis, args, R, pole_pairs):
+    """Sustained free-spin across several speeds for ~--soak-seconds total.
+
+    Unlike characterize (a ~0.6 s grab per speed) this holds each speed for a
+    real stretch of time so you can watch current/temperature settle and catch
+    intermittent faults. Given the LA8308's history of a slipping sensor magnet
+    (commutation inverts under torque -> velocity collapses and Iq pins), each
+    sample is checked for lost tracking and Iq saturation; the soak aborts
+    safely on any axis error, FET over-temp, or slip signature.
+    """
+    e = axis.encoder; m = axis.motor; c = axis.controller
+    speeds = args.soak_speeds or args.spin_speeds
+    per = max(2.0, args.soak_seconds / len(speeds))
+    print(f"\n=== sustained spin soak: {len(speeds)} speeds x {per:.1f}s "
+          f"(~{args.soak_seconds:.0f}s total) ===", flush=True)
+    c.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
+    c.config.input_mode = INPUT_MODE_PASSTHROUGH
+    c.config.vel_limit = max(abs(s) for s in speeds) * 1.4
+    c.input_vel = 0.0
+    if not enter_closed_loop(axis):
+        return {"status": "FAIL", "reason": "closed-loop entry failed",
+                "errors": err_tuple(axis)}
+    i_sat = 0.9 * args.current_limit
+    runs = []
+    aborted = None
+    try:
+        for spd in speeds:
+            c.input_vel = spd
+            time.sleep(1.2)                            # settle before logging
+            fet0 = float(axis.fet_thermistor.temperature)
+            vels, iqs = [], []
+            t0 = time.monotonic()
+            slip = False
+            while time.monotonic() - t0 < per:
+                fet = float(axis.fet_thermistor.temperature)
+                if fet > args.fet_temp_limit:
+                    aborted = f"FET temp {fet:.1f}C > {args.fet_temp_limit}C"
+                    break
+                if any(err_tuple(axis)):
+                    aborted = f"axis error {err_tuple(axis)}"
+                    break
+                v = float(e.vel_estimate)
+                iq = float(m.current_control.Iq_measured)
+                vels.append(v); iqs.append(iq)
+                # magnet-slip signature: commanded torque but rotor not tracking
+                if abs(v) < 0.6 * abs(spd) or (v * spd < 0) or abs(iq) > i_sat:
+                    slip = True
+                    aborted = (f"slip/lost-tracking at {spd:.1f} t/s: "
+                               f"vel={v:.2f} Iq={iq:.1f}A")
+                    break
+                time.sleep(0.1)
+            absiq = [abs(x) for x in iqs]
+            row = {"cmd_turns_s": spd, "seconds": round(time.monotonic() - t0, 1),
+                   "mean_vel_turns_s": statistics.fmean(vels) if vels else 0.0,
+                   "min_vel_turns_s": min(vels) if vels else 0.0,
+                   "max_vel_turns_s": max(vels) if vels else 0.0,
+                   "mean_abs_iq_a": statistics.fmean(absiq) if absiq else 0.0,
+                   "max_abs_iq_a": max(absiq) if absiq else 0.0,
+                   "fet_start_c": fet0,
+                   "fet_end_c": float(axis.fet_thermistor.temperature),
+                   "slip_detected": slip, "errors": err_tuple(axis)}
+            runs.append(row)
+            flag = "SLIP!" if slip else "ok"
+            print(f"  {spd:5.1f} t/s {row['seconds']:4.1f}s: "
+                  f"vel {row['min_vel_turns_s']:5.2f}..{row['max_vel_turns_s']:5.2f} "
+                  f"|Iq| mean={row['mean_abs_iq_a']:4.2f}A max={row['max_abs_iq_a']:4.2f}A "
+                  f"FET {fet0:.1f}->{row['fet_end_c']:.1f}C  {flag}", flush=True)
+            c.input_vel = 0.0
+            time.sleep(0.4)
+            if aborted:
+                break
+    finally:
+        c.input_vel = 0.0
+        axis.requested_state = AXIS_STATE_IDLE
+        time.sleep(0.2)
+    status = "FAIL" if aborted else "PASS"
+    if aborted:
+        print(f"  ABORTED: {aborted}", flush=True)
+    return {"status": status, "aborted": aborted, "runs": runs}
 
 
 def step_metrics(rows, target, settle_frac=0.05):
@@ -273,7 +363,7 @@ def tune_position(axis, args, vel_gain, vel_integrator_gain):
 
 def main():
     args = parse_args()
-    if not args.characterize and not args.tune:
+    if not args.characterize and not args.tune and not args.spin_soak:
         args.characterize = args.tune = True
 
     print("Connecting to ODrive...", flush=True)
@@ -311,6 +401,9 @@ def main():
 
         if args.characterize:
             report["characterize"] = characterize(axis, args, R, pole_pairs)
+
+        if args.spin_soak:
+            report["spin_soak"] = spin_soak(axis, args, R, pole_pairs)
 
         if args.tune:
             vt = tune_velocity(axis, args)
