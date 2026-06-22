@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-06-22T17:52:30.468187+00:00",
+  "feedback": "load",
+  "gear_ratio": 34.0,
+  "travel_degrees": 95.0,
+  "motor_direction": -1,
+  "auto_tune_speed": false,
+  "tune_repetitions": 2,
+  "max_tune_iterations": 4,
+  "stiction": [],
+  "speed": [],
+  "final_errors": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "final_output_deg": 20.06103515625
+}

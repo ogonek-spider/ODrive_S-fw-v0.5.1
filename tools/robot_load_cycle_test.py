@@ -51,6 +51,9 @@ def parse_args():
     parser.add_argument("--tolerance-turns", type=float, default=0.0015,
                         help="Endpoint tolerance on the load encoder (turns).")
     parser.add_argument("--current-limit", type=float, default=15.0)
+    parser.add_argument("--move-timeout", type=float, default=40.0,
+                        help="Max seconds for a single move before aborting (keeps "
+                             "a stalled high-current lift from cooking the windings).")
     parser.add_argument("--fet-temperature-limit", type=float, default=70.0)
     parser.add_argument("--watchdog-timeout", type=float, default=1.0)
     parser.add_argument("--hold-kp", type=float, default=25.0,
@@ -140,7 +143,7 @@ def move_load_to(device, args, coupling, target_turns, max_vel, label):
         peak_iq = max(peak_iq, abs(float(axis.motor.current_control.Iq_measured)))
         if abs(error) <= args.tolerance_turns:
             break
-        if time.monotonic() - started > 40.0:
+        if time.monotonic() - started > args.move_timeout:
             raise RuntimeError(f"{label}: move timeout (load={load*360:.1f} deg)")
         remaining_motor = abs(error / coupling)
         braking = math.sqrt(max(0.0, 2.0 * args.accel * remaining_motor))

@@ -1,0 +1,113 @@
+{
+  "motor_id": "LA8308-postburn",
+  "serial_number": "3482345a3034",
+  "fw_version": "0.6.11.post0",
+  "axis": 0,
+  "vbus_v": 39.8763427734375,
+  "fet_temp_start_c": 50.27223205566406,
+  "stored": {
+    "phase_resistance_ohm": 0.11199094355106354,
+    "phase_inductance_H": 5.864119884790853e-05,
+    "pole_pairs": 20,
+    "torque_constant": 0.08100000023841858,
+    "motor_direction": 1,
+    "encoder_mode": 257,
+    "encoder_cpr": 16384,
+    "encoder_direction": 1,
+    "offset_float": 0.8956406116485596
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "motor_calibration": {
+    "status": "PASS",
+    "R_spread_ohm": 0.0001668781042098999,
+    "L_spread_H": 1.079817593563348e-06,
+    "R_mean_ohm": 0.11775781810283661,
+    "L_mean_H": 6.218844355316832e-05,
+    "valid_runs": 5,
+    "runs": [
+      {
+        "run": 1,
+        "R_ohm": 0.1176832839846611,
+        "L_H": 6.22192383161746e-05,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 2,
+        "R_ohm": 0.11770365387201309,
+        "L_H": 6.162655336083844e-05,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 3,
+        "R_ohm": 0.11780227720737457,
+        "L_H": 6.172219582367688e-05,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 4,
+        "R_ohm": 0.11774971336126328,
+        "L_H": 6.266785931074992e-05,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 5,
+        "R_ohm": 0.117850162088871,
+        "L_H": 6.270637095440179e-05,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      }
+    ]
+  },
+  "fet_temp_end_c": 51.43151092529297,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "overall": "PASS"
+}
