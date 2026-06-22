@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+
+# Per-bench runtime state written by la8308_encoder_offset_repeat.py
+# (regenerated locally; serves as the cross-session drift baseline)
+reports/encoder_offset_history.json
