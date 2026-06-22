@@ -1,0 +1,154 @@
+{
+  "serial_number": "3482345a3034",
+  "vbus_v": 39.952880859375,
+  "fet_temp_start_c": 36.31827163696289,
+  "stored": {
+    "R_ohm": 0.11199094355106354,
+    "L_H": 5.864119884790853e-05,
+    "pole_pairs": 20,
+    "torque_constant": 0.08100000023841858,
+    "current_lim": 25.0,
+    "pos_gain": 90.0,
+    "vel_gain": 0.4000000059604645,
+    "vel_integrator_gain": 0.800000011920929
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "characterize": {
+    "status": "PASS",
+    "runs": [
+      {
+        "cmd_turns_s": 5.0,
+        "mean_vel_turns_s": 5.007425944010417,
+        "mean_abs_iq_a": 1.607974382241567,
+        "max_abs_iq_a": 3.0346384048461914,
+        "mean_vq_v": 1.9027428468068441,
+        "omega_elec_rad_s": 629.2517023639224,
+        "bemf_q_v": 1.7226642785336725,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 10.0,
+        "mean_vel_turns_s": 9.986878395080566,
+        "mean_abs_iq_a": 1.77833478252093,
+        "max_abs_iq_a": 2.8113327026367188,
+        "mean_vq_v": 3.5698136409123737,
+        "omega_elec_rad_s": 1254.9881519311891,
+        "bemf_q_v": 3.3706562506681794,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 15.0,
+        "mean_vel_turns_s": 14.948781331380209,
+        "mean_abs_iq_a": 1.8873610404630503,
+        "max_abs_iq_a": 4.517786026000977,
+        "mean_vq_v": 5.265352026621501,
+        "omega_elec_rad_s": 1878.5192644313724,
+        "bemf_q_v": 5.069482862648933,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 20.0,
+        "mean_vel_turns_s": 19.933320999145508,
+        "mean_abs_iq_a": 2.2704885085423787,
+        "max_abs_iq_a": 4.879271984100342,
+        "mean_vq_v": 6.897707573572794,
+        "omega_elec_rad_s": 2504.894992502507,
+        "bemf_q_v": 6.658710961091461,
+        "reached": true
+      }
+    ],
+    "flux_linkage_wb": 0.002676732556583103,
+    "kt_measured": 0.0803019766974931,
+    "kv_measured": 102.98625687825908
+  },
+  "spin_soak": {
+    "status": "PASS",
+    "aborted": null,
+    "runs": [
+      {
+        "cmd_turns_s": 5.0,
+        "seconds": 15.1,
+        "mean_vel_turns_s": 4.999339628562653,
+        "min_vel_turns_s": 4.661560535430908,
+        "max_vel_turns_s": 5.332947254180908,
+        "mean_abs_iq_a": 1.5466274876388715,
+        "max_abs_iq_a": 2.9806833267211914,
+        "fet_start_c": 37.702369689941406,
+        "fet_end_c": 37.497825622558594,
+        "slip_detected": false,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "cmd_turns_s": 10.0,
+        "seconds": 15.1,
+        "mean_vel_turns_s": 10.003619152864964,
+        "min_vel_turns_s": 9.742737770080566,
+        "max_vel_turns_s": 10.353089332580566,
+        "mean_abs_iq_a": 1.5778580614559943,
+        "max_abs_iq_a": 2.8843846321105957,
+        "fet_start_c": 37.614768981933594,
+        "fet_end_c": 37.848140716552734,
+        "slip_detected": false,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "cmd_turns_s": 15.0,
+        "seconds": 15.1,
+        "mean_vel_turns_s": 15.01410051386991,
+        "min_vel_turns_s": 14.366150856018066,
+        "max_vel_turns_s": 15.686036109924316,
+        "mean_abs_iq_a": 1.6282144393101872,
+        "max_abs_iq_a": 3.76568603515625,
+        "fet_start_c": 37.87726974487305,
+        "fet_end_c": 38.19691848754883,
+        "slip_detected": false,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "cmd_turns_s": 20.0,
+        "seconds": 15.1,
+        "mean_vel_turns_s": 20.010257130904165,
+        "min_vel_turns_s": 19.348146438598633,
+        "max_vel_turns_s": 20.896913528442383,
+        "mean_abs_iq_a": 2.0420289373547913,
+        "max_abs_iq_a": 5.446948528289795,
+        "fet_start_c": 38.167911529541016,
+        "fet_end_c": 38.42860794067383,
+        "slip_detected": false,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "fet_temp_end_c": 38.42860794067383,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ]
+}
