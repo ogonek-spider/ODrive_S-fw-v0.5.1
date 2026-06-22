@@ -1,0 +1,197 @@
+{
+  "serial_number": "3482345a3034",
+  "vbus_v": 39.92226791381836,
+  "fet_temp_start_c": 35.088687896728516,
+  "stored": {
+    "R_ohm": 0.11044450849294662,
+    "L_H": 5.887771840207279e-05,
+    "pole_pairs": 20,
+    "torque_constant": 0.09200000017881393,
+    "current_lim": 25.0,
+    "pos_gain": 20.0,
+    "vel_gain": 0.1666666716337204,
+    "vel_integrator_gain": 0.3333333432674408
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "tune_velocity": {
+    "results": [
+      {
+        "vel_gain": 0.05,
+        "status": "ok",
+        "overshoot_pct": -6.0630738735198975,
+        "settle_s": null,
+        "ripple_std": 0.1290309367437894,
+        "peak": 7.514954090118408,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "vel_gain": 0.08,
+        "status": "ok",
+        "overshoot_pct": -3.2974183559417725,
+        "settle_s": null,
+        "ripple_std": 0.11941034528348256,
+        "peak": 7.736206531524658,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "vel_gain": 0.12,
+        "status": "ok",
+        "overshoot_pct": -1.9622743129730225,
+        "settle_s": 0.5208274170290679,
+        "ripple_std": 0.06803749450375698,
+        "peak": 7.843018054962158,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "vel_gain": 0.18,
+        "status": "ok",
+        "overshoot_pct": -1.294708251953125,
+        "settle_s": 0.030626292107626796,
+        "ripple_std": 0.06511403017775776,
+        "peak": 7.89642333984375,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "vel_gain": 0.27,
+        "status": "ok",
+        "overshoot_pct": 2.424633502960205,
+        "settle_s": 0.01563716703094542,
+        "ripple_std": 0.05103494344272582,
+        "peak": 8.193970680236816,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "vel_gain": 0.4,
+        "status": "ok",
+        "overshoot_pct": 0.9941220283508301,
+        "settle_s": 0.01651266706176102,
+        "ripple_std": 0.03199786962472461,
+        "peak": 8.079529762268066,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "chosen_vel_gain": 0.4
+  },
+  "tune_position": {
+    "results": [
+      {
+        "pos_gain": 10.0,
+        "status": "ok",
+        "overshoot_pct": -0.0164031982421875,
+        "settle_s": 0.3220116251613945,
+        "ripple_std": 0.008519072532667711,
+        "peak": 1.9996719360351562,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "pos_gain": 20.0,
+        "status": "ok",
+        "overshoot_pct": -0.0461578369140625,
+        "settle_s": 0.17619379214011133,
+        "ripple_std": 0.0005762261364732252,
+        "peak": 1.9990768432617188,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "pos_gain": 40.0,
+        "status": "ok",
+        "overshoot_pct": -0.0335693359375,
+        "settle_s": 0.12501008296385407,
+        "ripple_std": 0.00016126216286746847,
+        "peak": 1.99932861328125,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "pos_gain": 60.0,
+        "status": "ok",
+        "overshoot_pct": -0.0286102294921875,
+        "settle_s": 0.11381358397193253,
+        "ripple_std": 0.00017372469013863688,
+        "peak": 1.9994277954101562,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "pos_gain": 90.0,
+        "status": "ok",
+        "overshoot_pct": -0.014495849609375,
+        "settle_s": 0.11190074984915555,
+        "ripple_std": 0.00011963535040628129,
+        "peak": 1.9997100830078125,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "chosen_pos_gain": 90.0
+  },
+  "recommended_gains": {
+    "vel_gain": 0.4,
+    "vel_integrator_gain": 0.8,
+    "pos_gain": 90.0
+  },
+  "fet_temp_end_c": 36.614933013916016,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ]
+}

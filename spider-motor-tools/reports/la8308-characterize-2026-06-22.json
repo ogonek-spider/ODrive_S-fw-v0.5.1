@@ -1,0 +1,76 @@
+{
+  "serial_number": "3482345a3034",
+  "vbus_v": 39.906959533691406,
+  "fet_temp_start_c": 34.602752685546875,
+  "stored": {
+    "R_ohm": 0.11044450849294662,
+    "L_H": 5.887771840207279e-05,
+    "pole_pairs": 20,
+    "torque_constant": 0.09200000017881393,
+    "current_lim": 25.0,
+    "pos_gain": 20.0,
+    "vel_gain": 0.1666666716337204,
+    "vel_integrator_gain": 0.3333333432674408
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "characterize": {
+    "status": "PASS",
+    "runs": [
+      {
+        "cmd_turns_s": 5.0,
+        "mean_vel_turns_s": 5.000051339467366,
+        "mean_abs_iq_a": 0.500799605747064,
+        "max_abs_iq_a": 0.8907434344291687,
+        "mean_vq_v": 1.7937843998273213,
+        "omega_elec_rad_s": 628.3249822256993,
+        "bemf_q_v": 1.7384738335171255,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 10.0,
+        "mean_vel_turns_s": 10.003154436747232,
+        "mean_abs_iq_a": 0.4360270539919535,
+        "max_abs_iq_a": 1.2267630100250244,
+        "mean_vq_v": 3.490589157740275,
+        "omega_elec_rad_s": 1257.0334596483701,
+        "bemf_q_v": 3.442432364072506,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 15.0,
+        "mean_vel_turns_s": 14.997610410054525,
+        "mean_abs_iq_a": 0.46638736414412657,
+        "max_abs_iq_a": 1.3207911252975464,
+        "mean_vq_v": 5.136064624786377,
+        "omega_elec_rad_s": 1884.655307425164,
+        "bemf_q_v": 5.084637636486253,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 20.0,
+        "mean_vel_turns_s": 19.985963821411133,
+        "mean_abs_iq_a": 0.6694394598404566,
+        "max_abs_iq_a": 1.4022713899612427,
+        "mean_vq_v": 6.815871699651082,
+        "omega_elec_rad_s": 2511.510284650264,
+        "bemf_q_v": 6.754265448798225,
+        "reached": true
+      }
+    ],
+    "flux_linkage_wb": 0.00270105887688493,
+    "kt_measured": 0.08103176630654789,
+    "kv_measured": 102.058740379842
+  },
+  "fet_temp_end_c": 35.60117721557617,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ]
+}
