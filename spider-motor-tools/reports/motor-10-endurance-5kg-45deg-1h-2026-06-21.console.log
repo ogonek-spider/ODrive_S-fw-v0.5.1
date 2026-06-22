@@ -1,0 +1,45 @@
+Connecting to ODrive...
+Logging telemetry -> /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/spider-motor-tools/reports/motor-10-endurance-5kg-45deg-1h-2026-06-21.jsonl
+Start load = 49.26 deg
+  coupling = -0.0303 load-turn/motor-turn (~33.0:1)
+Moving to 0 deg...
+  at 0.22 deg
+
+**********************************************************
+  HOLDING 0 deg. PLACE / SECURE THE WEIGHT.
+  Then run 60 min of [60s sweep 0<->+45 deg, 60s hold 0 deg].
+  signal:  touch /tmp/start_cycles
+**********************************************************
+
+  holding +0.0 deg... load=+0.12 deg  Iq=+0.26A  torque=1.7Nm
+  holding +0.0 deg... load=-0.10 deg  Iq=+1.27A  torque=8.4Nm
+  holding +0.0 deg... load=-0.10 deg  Iq=+1.03A  torque=6.8Nm
+  holding +0.0 deg... load=-0.10 deg  Iq=+0.70A  torque=4.6Nm
+  holding +0.0 deg... load=+2.84 deg  Iq=+9.49A  torque=62.6Nm
+  holding +0.0 deg... load=-0.43 deg  Iq=+9.11A  torque=60.1Nm
+  signal received (start_cycles).
+
+=== DUTY CYCLE: 60 min (sweep 0<->+45 deg) ===
+  cycle  1: 34 strokes, sweep peak  71.4Nm, hold droop -0.17deg, fet 48.3C, t=122s
+  cycle  2: 33 strokes, sweep peak  72.0Nm, hold droop -0.17deg, fet 51.1C, t=244s
+  cycle  3: 33 strokes, sweep peak  72.6Nm, hold droop -0.16deg, fet 53.4C, t=366s
+  cycle  4: 33 strokes, sweep peak  73.5Nm, hold droop +0.07deg, fet 57.0C, t=488s
+  cycle  5: 33 strokes, sweep peak  73.3Nm, hold droop +0.73deg, fet 58.3C, t=611s
+  cycle  6: 32 strokes, sweep peak  72.4Nm, hold droop +0.09deg, fet 61.5C, t=731s
+  cycle  7: 30 strokes, sweep peak  81.8Nm, hold droop -0.05deg, fet 60.4C, t=853s
+
+IDLE  load=23.48 deg  errors=(0, 0, 0, 0, 0, 0)
+summary=spider-motor-tools/reports/motor-10-endurance-5kg-45deg-1h-2026-06-21.json
+log=spider-motor-tools/reports/motor-10-endurance-5kg-45deg-1h-2026-06-21.jsonl
+Traceback (most recent call last):
+  File "/Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/tools/robot_endurance_test.py", line 489, in <module>
+    main()
+    ~~~~^^
+  File "/Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/tools/robot_endurance_test.py", line 398, in main
+    p = move_load_blocking(device, args, coupling, target,
+                           args.sweep_vel,
+                           f"c{cycle_index}-sweep", telemetry, clock,
+                           state)
+  File "/Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/tools/robot_endurance_test.py", line 188, in move_load_blocking
+    raise RuntimeError(f"{label}: move timeout (load={load*360:.1f} deg)")
+RuntimeError: c8-sweep: move timeout (load=19.3 deg)

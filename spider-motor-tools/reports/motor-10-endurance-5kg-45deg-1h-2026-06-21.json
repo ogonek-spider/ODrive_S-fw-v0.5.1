@@ -1,0 +1,101 @@
+{
+  "timestamp_utc": "2026-06-21T09:37:03.004280+00:00",
+  "test": "endurance-duty-cycle",
+  "gear_ratio": 34.0,
+  "torque_constant": 0.1940000057220459,
+  "duration_s": 3600.0,
+  "sweep_seconds": 60.0,
+  "hold_seconds": 60.0,
+  "lift_degrees": 45.0,
+  "lift_sign": 1,
+  "current_limit": 15.0,
+  "log_file": "/Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/spider-motor-tools/reports/motor-10-endurance-5kg-45deg-1h-2026-06-21.jsonl",
+  "cycles": [
+    {
+      "cycle": 1,
+      "strokes": 34,
+      "sweep_peak_torque_nm": 71.38,
+      "hold_load_deg": [
+        0.181,
+        -0.17
+      ],
+      "fet_c": 48.3,
+      "elapsed_s": 121.6
+    },
+    {
+      "cycle": 2,
+      "strokes": 33,
+      "sweep_peak_torque_nm": 72.02,
+      "hold_load_deg": [
+        0.165,
+        -0.17
+      ],
+      "fet_c": 51.1,
+      "elapsed_s": 243.5
+    },
+    {
+      "cycle": 3,
+      "strokes": 33,
+      "sweep_peak_torque_nm": 72.58,
+      "hold_load_deg": [
+        -0.176,
+        -0.159
+      ],
+      "fet_c": 53.4,
+      "elapsed_s": 365.5
+    },
+    {
+      "cycle": 4,
+      "strokes": 33,
+      "sweep_peak_torque_nm": 73.52,
+      "hold_load_deg": [
+        0.511,
+        0.071
+      ],
+      "fet_c": 57.0,
+      "elapsed_s": 487.5
+    },
+    {
+      "cycle": 5,
+      "strokes": 33,
+      "sweep_peak_torque_nm": 73.33,
+      "hold_load_deg": [
+        0.138,
+        0.731
+      ],
+      "fet_c": 58.3,
+      "elapsed_s": 611.0
+    },
+    {
+      "cycle": 6,
+      "strokes": 32,
+      "sweep_peak_torque_nm": 72.44,
+      "hold_load_deg": [
+        0.409,
+        0.093
+      ],
+      "fet_c": 61.5,
+      "elapsed_s": 731.3
+    },
+    {
+      "cycle": 7,
+      "strokes": 30,
+      "sweep_peak_torque_nm": 81.79,
+      "hold_load_deg": [
+        0.422,
+        -0.049
+      ],
+      "fet_c": 60.4,
+      "elapsed_s": 853.0
+    }
+  ],
+  "final_errors": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "final_load_deg": 23.48
+}

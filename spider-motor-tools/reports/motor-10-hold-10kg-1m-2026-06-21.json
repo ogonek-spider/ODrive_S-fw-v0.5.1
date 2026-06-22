@@ -1,0 +1,2735 @@
+{
+  "timestamp_utc": "2026-06-21T09:23:26.218895+00:00",
+  "test": "hold-0-under-load",
+  "duration_s": 300.0,
+  "gear_ratio": 34.0,
+  "torque_constant": 0.1940000057220459,
+  "load_feedback": true,
+  "samples": [
+    {
+      "t_s": 0.0,
+      "iq_a": 0.277,
+      "motor_torque_nm": 0.054,
+      "output_torque_nm": 1.83,
+      "motor_drift_deg": 0.0,
+      "fet_c": 26.5,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 1.02,
+      "iq_a": -0.032,
+      "motor_torque_nm": 0.006,
+      "output_torque_nm": 0.21,
+      "motor_drift_deg": -0.0,
+      "fet_c": 26.6,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 2.01,
+      "iq_a": 0.01,
+      "motor_torque_nm": 0.002,
+      "output_torque_nm": 0.07,
+      "motor_drift_deg": 0.0,
+      "fet_c": 27.0,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 3.0,
+      "iq_a": 0.089,
+      "motor_torque_nm": 0.017,
+      "output_torque_nm": 0.59,
+      "motor_drift_deg": 0.0,
+      "fet_c": 27.1,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 4.03,
+      "iq_a": 0.145,
+      "motor_torque_nm": 0.028,
+      "output_torque_nm": 0.95,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.1,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 5.03,
+      "iq_a": 0.362,
+      "motor_torque_nm": 0.07,
+      "output_torque_nm": 2.39,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.3,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 6.03,
+      "iq_a": -0.015,
+      "motor_torque_nm": 0.003,
+      "output_torque_nm": 0.1,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.4,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 7.02,
+      "iq_a": 0.294,
+      "motor_torque_nm": 0.057,
+      "output_torque_nm": 1.94,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.5,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 8.01,
+      "iq_a": 0.333,
+      "motor_torque_nm": 0.065,
+      "output_torque_nm": 2.2,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.6,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 9.01,
+      "iq_a": 0.275,
+      "motor_torque_nm": 0.053,
+      "output_torque_nm": 1.81,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.7,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 10.02,
+      "iq_a": 0.314,
+      "motor_torque_nm": 0.061,
+      "output_torque_nm": 2.07,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.8,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 11.01,
+      "iq_a": 0.271,
+      "motor_torque_nm": 0.053,
+      "output_torque_nm": 1.79,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.8,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 12.03,
+      "iq_a": 0.407,
+      "motor_torque_nm": 0.079,
+      "output_torque_nm": 2.68,
+      "motor_drift_deg": 0.001,
+      "fet_c": 27.9,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 13.03,
+      "iq_a": 0.449,
+      "motor_torque_nm": 0.087,
+      "output_torque_nm": 2.96,
+      "motor_drift_deg": 0.002,
+      "fet_c": 28.1,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 14.03,
+      "iq_a": 0.566,
+      "motor_torque_nm": 0.11,
+      "output_torque_nm": 3.73,
+      "motor_drift_deg": 0.002,
+      "fet_c": 28.1,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 15.01,
+      "iq_a": 0.47,
+      "motor_torque_nm": 0.091,
+      "output_torque_nm": 3.1,
+      "motor_drift_deg": 0.002,
+      "fet_c": 28.2,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 16.01,
+      "iq_a": 0.605,
+      "motor_torque_nm": 0.117,
+      "output_torque_nm": 3.99,
+      "motor_drift_deg": 0.003,
+      "fet_c": 28.2,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 17.0,
+      "iq_a": 0.563,
+      "motor_torque_nm": 0.109,
+      "output_torque_nm": 3.72,
+      "motor_drift_deg": 0.003,
+      "fet_c": 28.2,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 18.03,
+      "iq_a": 0.14,
+      "motor_torque_nm": 0.027,
+      "output_torque_nm": 0.92,
+      "motor_drift_deg": 0.003,
+      "fet_c": 28.4,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 19.02,
+      "iq_a": 3.999,
+      "motor_torque_nm": 0.776,
+      "output_torque_nm": 26.38,
+      "motor_drift_deg": -0.675,
+      "fet_c": 28.1,
+      "load_drift_deg": 2.004
+    },
+    {
+      "t_s": 20.02,
+      "iq_a": 7.779,
+      "motor_torque_nm": 1.509,
+      "output_torque_nm": 51.31,
+      "motor_drift_deg": -0.821,
+      "fet_c": 28.5,
+      "load_drift_deg": 2.747
+    },
+    {
+      "t_s": 21.03,
+      "iq_a": 8.694,
+      "motor_torque_nm": 1.687,
+      "output_torque_nm": 57.35,
+      "motor_drift_deg": 0.365,
+      "fet_c": 28.6,
+      "load_drift_deg": 1.645
+    },
+    {
+      "t_s": 22.01,
+      "iq_a": 0.39,
+      "motor_torque_nm": 0.076,
+      "output_torque_nm": 2.57,
+      "motor_drift_deg": 5.267,
+      "fet_c": 28.5,
+      "load_drift_deg": -5.087
+    },
+    {
+      "t_s": 23.02,
+      "iq_a": -0.23,
+      "motor_torque_nm": 0.045,
+      "output_torque_nm": 1.52,
+      "motor_drift_deg": 2.157,
+      "fet_c": 28.6,
+      "load_drift_deg": -1.797
+    },
+    {
+      "t_s": 24.01,
+      "iq_a": -0.506,
+      "motor_torque_nm": 0.098,
+      "output_torque_nm": 3.34,
+      "motor_drift_deg": 0.234,
+      "fet_c": 28.6,
+      "load_drift_deg": -0.154
+    },
+    {
+      "t_s": 25.0,
+      "iq_a": 0.005,
+      "motor_torque_nm": 0.001,
+      "output_torque_nm": 0.03,
+      "motor_drift_deg": -0.012,
+      "fet_c": 28.7,
+      "load_drift_deg": 0.11
+    },
+    {
+      "t_s": 26.03,
+      "iq_a": -0.17,
+      "motor_torque_nm": 0.033,
+      "output_torque_nm": 1.12,
+      "motor_drift_deg": -0.011,
+      "fet_c": 28.7,
+      "load_drift_deg": -0.096
+    },
+    {
+      "t_s": 27.02,
+      "iq_a": -1.478,
+      "motor_torque_nm": 0.287,
+      "output_torque_nm": 9.75,
+      "motor_drift_deg": -0.29,
+      "fet_c": 28.7,
+      "load_drift_deg": -1.618
+    },
+    {
+      "t_s": 28.0,
+      "iq_a": -2.793,
+      "motor_torque_nm": 0.542,
+      "output_torque_nm": 18.42,
+      "motor_drift_deg": -7.059,
+      "fet_c": 28.8,
+      "load_drift_deg": -1.208
+    },
+    {
+      "t_s": 29.01,
+      "iq_a": -2.468,
+      "motor_torque_nm": 0.479,
+      "output_torque_nm": 16.28,
+      "motor_drift_deg": -8.07,
+      "fet_c": 28.9,
+      "load_drift_deg": -0.319
+    },
+    {
+      "t_s": 30.02,
+      "iq_a": -1.694,
+      "motor_torque_nm": 0.329,
+      "output_torque_nm": 11.18,
+      "motor_drift_deg": -9.057,
+      "fet_c": 28.8,
+      "load_drift_deg": 0.417
+    },
+    {
+      "t_s": 31.02,
+      "iq_a": -0.611,
+      "motor_torque_nm": 0.118,
+      "output_torque_nm": 4.03,
+      "motor_drift_deg": -9.055,
+      "fet_c": 28.8,
+      "load_drift_deg": 0.483
+    },
+    {
+      "t_s": 32.02,
+      "iq_a": 0.106,
+      "motor_torque_nm": 0.021,
+      "output_torque_nm": 0.7,
+      "motor_drift_deg": -9.048,
+      "fet_c": 28.8,
+      "load_drift_deg": 0.505
+    },
+    {
+      "t_s": 33.0,
+      "iq_a": 0.649,
+      "motor_torque_nm": 0.126,
+      "output_torque_nm": 4.28,
+      "motor_drift_deg": -8.954,
+      "fet_c": 29.1,
+      "load_drift_deg": 0.396
+    },
+    {
+      "t_s": 34.01,
+      "iq_a": 0.737,
+      "motor_torque_nm": 0.143,
+      "output_torque_nm": 4.86,
+      "motor_drift_deg": -8.527,
+      "fet_c": 29.1,
+      "load_drift_deg": -0.121
+    },
+    {
+      "t_s": 35.02,
+      "iq_a": 0.414,
+      "motor_torque_nm": 0.08,
+      "output_torque_nm": 2.73,
+      "motor_drift_deg": -8.494,
+      "fet_c": 29.0,
+      "load_drift_deg": -0.143
+    },
+    {
+      "t_s": 36.02,
+      "iq_a": 0.442,
+      "motor_torque_nm": 0.086,
+      "output_torque_nm": 2.91,
+      "motor_drift_deg": -8.494,
+      "fet_c": 29.1,
+      "load_drift_deg": -0.11
+    },
+    {
+      "t_s": 37.0,
+      "iq_a": 0.422,
+      "motor_torque_nm": 0.082,
+      "output_torque_nm": 2.78,
+      "motor_drift_deg": -8.496,
+      "fet_c": 29.2,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 38.02,
+      "iq_a": 0.354,
+      "motor_torque_nm": 0.069,
+      "output_torque_nm": 2.33,
+      "motor_drift_deg": -5.578,
+      "fet_c": 29.2,
+      "load_drift_deg": 0.413
+    },
+    {
+      "t_s": 39.01,
+      "iq_a": 2.322,
+      "motor_torque_nm": 0.451,
+      "output_torque_nm": 15.32,
+      "motor_drift_deg": -1.156,
+      "fet_c": 29.3,
+      "load_drift_deg": 1.065
+    },
+    {
+      "t_s": 40.01,
+      "iq_a": 2.254,
+      "motor_torque_nm": 0.437,
+      "output_torque_nm": 14.87,
+      "motor_drift_deg": -0.459,
+      "fet_c": 29.2,
+      "load_drift_deg": 0.318
+    },
+    {
+      "t_s": 41.01,
+      "iq_a": 1.749,
+      "motor_torque_nm": 0.339,
+      "output_torque_nm": 11.54,
+      "motor_drift_deg": 0.217,
+      "fet_c": 29.2,
+      "load_drift_deg": -0.297
+    },
+    {
+      "t_s": 42.02,
+      "iq_a": 1.143,
+      "motor_torque_nm": 0.222,
+      "output_torque_nm": 7.54,
+      "motor_drift_deg": 0.217,
+      "fet_c": 29.2,
+      "load_drift_deg": -0.297
+    },
+    {
+      "t_s": 43.01,
+      "iq_a": 1.086,
+      "motor_torque_nm": 0.211,
+      "output_torque_nm": 7.16,
+      "motor_drift_deg": 0.215,
+      "fet_c": 29.3,
+      "load_drift_deg": -0.297
+    },
+    {
+      "t_s": 44.02,
+      "iq_a": 0.323,
+      "motor_torque_nm": 0.063,
+      "output_torque_nm": 2.13,
+      "motor_drift_deg": 0.211,
+      "fet_c": 29.4,
+      "load_drift_deg": -0.297
+    },
+    {
+      "t_s": 45.02,
+      "iq_a": 3.375,
+      "motor_torque_nm": 0.655,
+      "output_torque_nm": 22.26,
+      "motor_drift_deg": -0.552,
+      "fet_c": 29.4,
+      "load_drift_deg": 1.517
+    },
+    {
+      "t_s": 46.02,
+      "iq_a": 7.947,
+      "motor_torque_nm": 1.542,
+      "output_torque_nm": 52.42,
+      "motor_drift_deg": -1.411,
+      "fet_c": 29.5,
+      "load_drift_deg": 3.087
+    },
+    {
+      "t_s": 47.02,
+      "iq_a": 13.125,
+      "motor_torque_nm": 2.546,
+      "output_torque_nm": 86.57,
+      "motor_drift_deg": -1.333,
+      "fet_c": 29.8,
+      "load_drift_deg": 3.592
+    },
+    {
+      "t_s": 48.01,
+      "iq_a": 17.542,
+      "motor_torque_nm": 3.403,
+      "output_torque_nm": 115.7,
+      "motor_drift_deg": -0.64,
+      "fet_c": 30.0,
+      "load_drift_deg": 3.691
+    },
+    {
+      "t_s": 49.03,
+      "iq_a": 15.188,
+      "motor_torque_nm": 2.946,
+      "output_torque_nm": 100.18,
+      "motor_drift_deg": 3.777,
+      "fet_c": 30.3,
+      "load_drift_deg": -0.11
+    },
+    {
+      "t_s": 50.01,
+      "iq_a": 15.377,
+      "motor_torque_nm": 2.983,
+      "output_torque_nm": 101.43,
+      "motor_drift_deg": 3.78,
+      "fet_c": 30.2,
+      "load_drift_deg": -0.11
+    },
+    {
+      "t_s": 51.0,
+      "iq_a": 15.393,
+      "motor_torque_nm": 2.986,
+      "output_torque_nm": 101.53,
+      "motor_drift_deg": 3.781,
+      "fet_c": 30.2,
+      "load_drift_deg": -0.11
+    },
+    {
+      "t_s": 52.03,
+      "iq_a": 14.711,
+      "motor_torque_nm": 2.854,
+      "output_torque_nm": 97.03,
+      "motor_drift_deg": 3.781,
+      "fet_c": 30.2,
+      "load_drift_deg": -0.11
+    },
+    {
+      "t_s": 53.0,
+      "iq_a": 14.91,
+      "motor_torque_nm": 2.892,
+      "output_torque_nm": 98.34,
+      "motor_drift_deg": 3.781,
+      "fet_c": 30.6,
+      "load_drift_deg": -0.11
+    },
+    {
+      "t_s": 54.01,
+      "iq_a": 14.364,
+      "motor_torque_nm": 2.787,
+      "output_torque_nm": 94.74,
+      "motor_drift_deg": 3.781,
+      "fet_c": 30.7,
+      "load_drift_deg": -0.11
+    },
+    {
+      "t_s": 55.03,
+      "iq_a": 14.517,
+      "motor_torque_nm": 2.816,
+      "output_torque_nm": 95.75,
+      "motor_drift_deg": 3.781,
+      "fet_c": 30.8,
+      "load_drift_deg": -0.088
+    },
+    {
+      "t_s": 56.02,
+      "iq_a": 14.403,
+      "motor_torque_nm": 2.794,
+      "output_torque_nm": 95.0,
+      "motor_drift_deg": 3.78,
+      "fet_c": 30.9,
+      "load_drift_deg": -0.088
+    },
+    {
+      "t_s": 57.02,
+      "iq_a": 14.405,
+      "motor_torque_nm": 2.794,
+      "output_torque_nm": 95.01,
+      "motor_drift_deg": 3.78,
+      "fet_c": 30.7,
+      "load_drift_deg": -0.088
+    },
+    {
+      "t_s": 58.02,
+      "iq_a": 14.472,
+      "motor_torque_nm": 2.808,
+      "output_torque_nm": 95.46,
+      "motor_drift_deg": 3.78,
+      "fet_c": 30.9,
+      "load_drift_deg": -0.088
+    },
+    {
+      "t_s": 59.03,
+      "iq_a": 14.027,
+      "motor_torque_nm": 2.721,
+      "output_torque_nm": 92.52,
+      "motor_drift_deg": 3.78,
+      "fet_c": 31.1,
+      "load_drift_deg": -0.088
+    },
+    {
+      "t_s": 60.03,
+      "iq_a": 13.839,
+      "motor_torque_nm": 2.685,
+      "output_torque_nm": 91.28,
+      "motor_drift_deg": 3.78,
+      "fet_c": 31.2,
+      "load_drift_deg": -0.066
+    },
+    {
+      "t_s": 61.01,
+      "iq_a": 13.906,
+      "motor_torque_nm": 2.698,
+      "output_torque_nm": 91.72,
+      "motor_drift_deg": 3.78,
+      "fet_c": 31.3,
+      "load_drift_deg": -0.066
+    },
+    {
+      "t_s": 62.02,
+      "iq_a": 13.998,
+      "motor_torque_nm": 2.716,
+      "output_torque_nm": 92.33,
+      "motor_drift_deg": 3.78,
+      "fet_c": 31.3,
+      "load_drift_deg": -0.066
+    },
+    {
+      "t_s": 63.03,
+      "iq_a": 13.594,
+      "motor_torque_nm": 2.637,
+      "output_torque_nm": 89.67,
+      "motor_drift_deg": 3.78,
+      "fet_c": 31.4,
+      "load_drift_deg": -0.066
+    },
+    {
+      "t_s": 64.02,
+      "iq_a": 13.55,
+      "motor_torque_nm": 2.629,
+      "output_torque_nm": 89.38,
+      "motor_drift_deg": 3.779,
+      "fet_c": 31.5,
+      "load_drift_deg": -0.066
+    },
+    {
+      "t_s": 65.02,
+      "iq_a": 13.154,
+      "motor_torque_nm": 2.552,
+      "output_torque_nm": 86.76,
+      "motor_drift_deg": 3.779,
+      "fet_c": 31.5,
+      "load_drift_deg": -0.066
+    },
+    {
+      "t_s": 66.01,
+      "iq_a": 13.308,
+      "motor_torque_nm": 2.582,
+      "output_torque_nm": 87.78,
+      "motor_drift_deg": 3.779,
+      "fet_c": 31.6,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 67.03,
+      "iq_a": 13.391,
+      "motor_torque_nm": 2.598,
+      "output_torque_nm": 88.33,
+      "motor_drift_deg": 3.779,
+      "fet_c": 31.8,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 68.03,
+      "iq_a": 13.233,
+      "motor_torque_nm": 2.567,
+      "output_torque_nm": 87.28,
+      "motor_drift_deg": 3.779,
+      "fet_c": 31.7,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 69.01,
+      "iq_a": 13.309,
+      "motor_torque_nm": 2.582,
+      "output_torque_nm": 87.79,
+      "motor_drift_deg": 3.779,
+      "fet_c": 31.9,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 70.01,
+      "iq_a": 13.014,
+      "motor_torque_nm": 2.525,
+      "output_torque_nm": 85.84,
+      "motor_drift_deg": 3.779,
+      "fet_c": 32.0,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 71.0,
+      "iq_a": 13.132,
+      "motor_torque_nm": 2.548,
+      "output_torque_nm": 86.62,
+      "motor_drift_deg": 3.779,
+      "fet_c": 32.1,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 72.0,
+      "iq_a": 12.767,
+      "motor_torque_nm": 2.477,
+      "output_torque_nm": 84.21,
+      "motor_drift_deg": 3.778,
+      "fet_c": 32.3,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 73.01,
+      "iq_a": 12.951,
+      "motor_torque_nm": 2.513,
+      "output_torque_nm": 85.43,
+      "motor_drift_deg": 3.778,
+      "fet_c": 32.4,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 74.0,
+      "iq_a": 12.834,
+      "motor_torque_nm": 2.49,
+      "output_torque_nm": 84.65,
+      "motor_drift_deg": 3.778,
+      "fet_c": 32.4,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 75.03,
+      "iq_a": 12.838,
+      "motor_torque_nm": 2.491,
+      "output_torque_nm": 84.68,
+      "motor_drift_deg": 3.778,
+      "fet_c": 32.3,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 76.03,
+      "iq_a": 12.452,
+      "motor_torque_nm": 2.416,
+      "output_torque_nm": 82.13,
+      "motor_drift_deg": 3.778,
+      "fet_c": 32.5,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 77.03,
+      "iq_a": 12.731,
+      "motor_torque_nm": 2.47,
+      "output_torque_nm": 83.97,
+      "motor_drift_deg": 3.778,
+      "fet_c": 32.5,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 78.02,
+      "iq_a": 12.516,
+      "motor_torque_nm": 2.428,
+      "output_torque_nm": 82.56,
+      "motor_drift_deg": 3.778,
+      "fet_c": 32.5,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 79.02,
+      "iq_a": 12.854,
+      "motor_torque_nm": 2.494,
+      "output_torque_nm": 84.78,
+      "motor_drift_deg": 3.777,
+      "fet_c": 32.8,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 80.01,
+      "iq_a": 12.739,
+      "motor_torque_nm": 2.471,
+      "output_torque_nm": 84.03,
+      "motor_drift_deg": 3.777,
+      "fet_c": 32.7,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 81.01,
+      "iq_a": 12.711,
+      "motor_torque_nm": 2.466,
+      "output_torque_nm": 83.84,
+      "motor_drift_deg": 3.777,
+      "fet_c": 32.9,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 82.01,
+      "iq_a": 12.714,
+      "motor_torque_nm": 2.466,
+      "output_torque_nm": 83.86,
+      "motor_drift_deg": 3.777,
+      "fet_c": 32.6,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 83.03,
+      "iq_a": 12.607,
+      "motor_torque_nm": 2.446,
+      "output_torque_nm": 83.16,
+      "motor_drift_deg": 3.777,
+      "fet_c": 32.9,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 84.01,
+      "iq_a": 12.306,
+      "motor_torque_nm": 2.387,
+      "output_torque_nm": 81.17,
+      "motor_drift_deg": 3.777,
+      "fet_c": 33.0,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 85.01,
+      "iq_a": 12.67,
+      "motor_torque_nm": 2.458,
+      "output_torque_nm": 83.57,
+      "motor_drift_deg": 3.777,
+      "fet_c": 33.0,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 86.0,
+      "iq_a": 12.479,
+      "motor_torque_nm": 2.421,
+      "output_torque_nm": 82.31,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.2,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 87.02,
+      "iq_a": 12.206,
+      "motor_torque_nm": 2.368,
+      "output_torque_nm": 80.51,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.2,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 88.01,
+      "iq_a": 12.505,
+      "motor_torque_nm": 2.426,
+      "output_torque_nm": 82.48,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.3,
+      "load_drift_deg": -0.022
+    },
+    {
+      "t_s": 89.01,
+      "iq_a": 12.431,
+      "motor_torque_nm": 2.412,
+      "output_torque_nm": 82.0,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.3,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 90.02,
+      "iq_a": 12.438,
+      "motor_torque_nm": 2.413,
+      "output_torque_nm": 82.04,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.4,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 91.03,
+      "iq_a": 12.438,
+      "motor_torque_nm": 2.413,
+      "output_torque_nm": 82.04,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.4,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 92.02,
+      "iq_a": 12.517,
+      "motor_torque_nm": 2.428,
+      "output_torque_nm": 82.56,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.7,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 93.03,
+      "iq_a": 12.41,
+      "motor_torque_nm": 2.408,
+      "output_torque_nm": 81.86,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.6,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 94.03,
+      "iq_a": 12.363,
+      "motor_torque_nm": 2.398,
+      "output_torque_nm": 81.55,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.7,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 95.03,
+      "iq_a": 12.48,
+      "motor_torque_nm": 2.421,
+      "output_torque_nm": 82.32,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.7,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 96.0,
+      "iq_a": 12.437,
+      "motor_torque_nm": 2.413,
+      "output_torque_nm": 82.04,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.8,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 97.01,
+      "iq_a": 12.514,
+      "motor_torque_nm": 2.428,
+      "output_torque_nm": 82.55,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.9,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 98.02,
+      "iq_a": 12.508,
+      "motor_torque_nm": 2.426,
+      "output_torque_nm": 82.5,
+      "motor_drift_deg": 3.776,
+      "fet_c": 33.9,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 99.0,
+      "iq_a": 12.396,
+      "motor_torque_nm": 2.405,
+      "output_torque_nm": 81.77,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.0,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 100.01,
+      "iq_a": 12.268,
+      "motor_torque_nm": 2.38,
+      "output_torque_nm": 80.92,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.0,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 101.01,
+      "iq_a": 12.393,
+      "motor_torque_nm": 2.404,
+      "output_torque_nm": 81.74,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.1,
+      "load_drift_deg": 0.0
+    },
+    {
+      "t_s": 102.01,
+      "iq_a": 12.516,
+      "motor_torque_nm": 2.428,
+      "output_torque_nm": 82.56,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.2,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 103.01,
+      "iq_a": 12.467,
+      "motor_torque_nm": 2.419,
+      "output_torque_nm": 82.23,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.2,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 104.0,
+      "iq_a": 12.596,
+      "motor_torque_nm": 2.444,
+      "output_torque_nm": 83.08,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.4,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 105.02,
+      "iq_a": 12.505,
+      "motor_torque_nm": 2.426,
+      "output_torque_nm": 82.48,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.3,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 106.01,
+      "iq_a": 12.418,
+      "motor_torque_nm": 2.409,
+      "output_torque_nm": 81.91,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.5,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 107.01,
+      "iq_a": 12.539,
+      "motor_torque_nm": 2.433,
+      "output_torque_nm": 82.71,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.5,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 108.01,
+      "iq_a": 12.828,
+      "motor_torque_nm": 2.489,
+      "output_torque_nm": 84.61,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.6,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 109.01,
+      "iq_a": 12.699,
+      "motor_torque_nm": 2.464,
+      "output_torque_nm": 83.77,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.8,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 110.01,
+      "iq_a": 13.294,
+      "motor_torque_nm": 2.579,
+      "output_torque_nm": 87.69,
+      "motor_drift_deg": 3.776,
+      "fet_c": 34.7,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 111.01,
+      "iq_a": 12.766,
+      "motor_torque_nm": 2.477,
+      "output_torque_nm": 84.2,
+      "motor_drift_deg": 3.777,
+      "fet_c": 34.8,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 112.02,
+      "iq_a": 12.927,
+      "motor_torque_nm": 2.508,
+      "output_torque_nm": 85.27,
+      "motor_drift_deg": 3.777,
+      "fet_c": 34.9,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 113.0,
+      "iq_a": 12.627,
+      "motor_torque_nm": 2.45,
+      "output_torque_nm": 83.29,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.0,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 114.02,
+      "iq_a": 12.869,
+      "motor_torque_nm": 2.497,
+      "output_torque_nm": 84.88,
+      "motor_drift_deg": 3.777,
+      "fet_c": 34.8,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 115.0,
+      "iq_a": 12.903,
+      "motor_torque_nm": 2.503,
+      "output_torque_nm": 85.11,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.1,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 116.01,
+      "iq_a": 12.941,
+      "motor_torque_nm": 2.511,
+      "output_torque_nm": 85.36,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.1,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 117.02,
+      "iq_a": 12.97,
+      "motor_torque_nm": 2.516,
+      "output_torque_nm": 85.55,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.1,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 118.01,
+      "iq_a": 13.013,
+      "motor_torque_nm": 2.525,
+      "output_torque_nm": 85.84,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.4,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 119.03,
+      "iq_a": 12.998,
+      "motor_torque_nm": 2.522,
+      "output_torque_nm": 85.74,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.2,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 120.02,
+      "iq_a": 12.914,
+      "motor_torque_nm": 2.505,
+      "output_torque_nm": 85.18,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.4,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 121.01,
+      "iq_a": 13.139,
+      "motor_torque_nm": 2.549,
+      "output_torque_nm": 86.66,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.5,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 122.02,
+      "iq_a": 13.097,
+      "motor_torque_nm": 2.541,
+      "output_torque_nm": 86.39,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.5,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 123.0,
+      "iq_a": 13.168,
+      "motor_torque_nm": 2.555,
+      "output_torque_nm": 86.86,
+      "motor_drift_deg": 3.777,
+      "fet_c": 35.7,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 124.02,
+      "iq_a": 13.16,
+      "motor_torque_nm": 2.553,
+      "output_torque_nm": 86.8,
+      "motor_drift_deg": 3.778,
+      "fet_c": 35.6,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 125.03,
+      "iq_a": 13.135,
+      "motor_torque_nm": 2.548,
+      "output_torque_nm": 86.64,
+      "motor_drift_deg": 3.778,
+      "fet_c": 35.8,
+      "load_drift_deg": 0.022
+    },
+    {
+      "t_s": 126.02,
+      "iq_a": 13.248,
+      "motor_torque_nm": 2.57,
+      "output_torque_nm": 87.38,
+      "motor_drift_deg": 3.778,
+      "fet_c": 35.8,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 127.03,
+      "iq_a": 13.359,
+      "motor_torque_nm": 2.592,
+      "output_torque_nm": 88.11,
+      "motor_drift_deg": 3.778,
+      "fet_c": 35.9,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 128.0,
+      "iq_a": 13.45,
+      "motor_torque_nm": 2.609,
+      "output_torque_nm": 88.72,
+      "motor_drift_deg": 3.779,
+      "fet_c": 36.0,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 129.0,
+      "iq_a": 13.492,
+      "motor_torque_nm": 2.617,
+      "output_torque_nm": 88.99,
+      "motor_drift_deg": 3.779,
+      "fet_c": 36.1,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 130.01,
+      "iq_a": 13.649,
+      "motor_torque_nm": 2.648,
+      "output_torque_nm": 90.03,
+      "motor_drift_deg": 3.779,
+      "fet_c": 36.1,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 131.0,
+      "iq_a": 13.59,
+      "motor_torque_nm": 2.636,
+      "output_torque_nm": 89.64,
+      "motor_drift_deg": 3.779,
+      "fet_c": 36.2,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 132.04,
+      "iq_a": 13.55,
+      "motor_torque_nm": 2.629,
+      "output_torque_nm": 89.37,
+      "motor_drift_deg": 3.779,
+      "fet_c": 36.3,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 133.01,
+      "iq_a": 13.79,
+      "motor_torque_nm": 2.675,
+      "output_torque_nm": 90.96,
+      "motor_drift_deg": 3.779,
+      "fet_c": 36.3,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 134.03,
+      "iq_a": 13.775,
+      "motor_torque_nm": 2.672,
+      "output_torque_nm": 90.86,
+      "motor_drift_deg": 3.779,
+      "fet_c": 36.4,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 135.02,
+      "iq_a": 13.376,
+      "motor_torque_nm": 2.595,
+      "output_torque_nm": 88.23,
+      "motor_drift_deg": 3.78,
+      "fet_c": 36.4,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 136.02,
+      "iq_a": 13.957,
+      "motor_torque_nm": 2.708,
+      "output_torque_nm": 92.06,
+      "motor_drift_deg": 3.78,
+      "fet_c": 36.6,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 137.02,
+      "iq_a": 13.994,
+      "motor_torque_nm": 2.715,
+      "output_torque_nm": 92.31,
+      "motor_drift_deg": 3.78,
+      "fet_c": 36.6,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 138.03,
+      "iq_a": 13.957,
+      "motor_torque_nm": 2.708,
+      "output_torque_nm": 92.06,
+      "motor_drift_deg": 3.781,
+      "fet_c": 36.8,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 139.01,
+      "iq_a": 14.044,
+      "motor_torque_nm": 2.725,
+      "output_torque_nm": 92.64,
+      "motor_drift_deg": 3.781,
+      "fet_c": 36.9,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 140.01,
+      "iq_a": 14.058,
+      "motor_torque_nm": 2.727,
+      "output_torque_nm": 92.73,
+      "motor_drift_deg": 3.781,
+      "fet_c": 37.0,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 141.02,
+      "iq_a": 14.233,
+      "motor_torque_nm": 2.761,
+      "output_torque_nm": 93.88,
+      "motor_drift_deg": 3.781,
+      "fet_c": 37.0,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 142.01,
+      "iq_a": 14.156,
+      "motor_torque_nm": 2.746,
+      "output_torque_nm": 93.38,
+      "motor_drift_deg": 3.781,
+      "fet_c": 37.2,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 143.02,
+      "iq_a": 14.376,
+      "motor_torque_nm": 2.789,
+      "output_torque_nm": 94.82,
+      "motor_drift_deg": 3.782,
+      "fet_c": 37.1,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 144.01,
+      "iq_a": 14.515,
+      "motor_torque_nm": 2.816,
+      "output_torque_nm": 95.74,
+      "motor_drift_deg": 3.782,
+      "fet_c": 37.4,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 145.0,
+      "iq_a": 14.455,
+      "motor_torque_nm": 2.804,
+      "output_torque_nm": 95.35,
+      "motor_drift_deg": 3.782,
+      "fet_c": 37.2,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 146.01,
+      "iq_a": 14.618,
+      "motor_torque_nm": 2.836,
+      "output_torque_nm": 96.42,
+      "motor_drift_deg": 3.783,
+      "fet_c": 37.2,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 147.03,
+      "iq_a": 14.616,
+      "motor_torque_nm": 2.835,
+      "output_torque_nm": 96.41,
+      "motor_drift_deg": 3.783,
+      "fet_c": 37.4,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 148.02,
+      "iq_a": 14.724,
+      "motor_torque_nm": 2.856,
+      "output_torque_nm": 97.12,
+      "motor_drift_deg": 3.783,
+      "fet_c": 37.5,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 149.02,
+      "iq_a": 14.46,
+      "motor_torque_nm": 2.805,
+      "output_torque_nm": 95.38,
+      "motor_drift_deg": 3.784,
+      "fet_c": 37.6,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 150.01,
+      "iq_a": 14.919,
+      "motor_torque_nm": 2.894,
+      "output_torque_nm": 98.4,
+      "motor_drift_deg": 3.784,
+      "fet_c": 37.4,
+      "load_drift_deg": 0.044
+    },
+    {
+      "t_s": 151.03,
+      "iq_a": 14.951,
+      "motor_torque_nm": 2.901,
+      "output_torque_nm": 98.62,
+      "motor_drift_deg": 3.785,
+      "fet_c": 37.9,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 152.0,
+      "iq_a": 15.077,
+      "motor_torque_nm": 2.925,
+      "output_torque_nm": 99.44,
+      "motor_drift_deg": 3.785,
+      "fet_c": 38.0,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 153.0,
+      "iq_a": 14.905,
+      "motor_torque_nm": 2.892,
+      "output_torque_nm": 98.31,
+      "motor_drift_deg": 3.786,
+      "fet_c": 37.7,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 154.02,
+      "iq_a": 15.033,
+      "motor_torque_nm": 2.916,
+      "output_torque_nm": 99.16,
+      "motor_drift_deg": 3.787,
+      "fet_c": 37.9,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 155.0,
+      "iq_a": 15.87,
+      "motor_torque_nm": 3.079,
+      "output_torque_nm": 104.68,
+      "motor_drift_deg": 3.788,
+      "fet_c": 38.2,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 156.01,
+      "iq_a": 15.425,
+      "motor_torque_nm": 2.993,
+      "output_torque_nm": 101.75,
+      "motor_drift_deg": 3.792,
+      "fet_c": 38.2,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 157.02,
+      "iq_a": 15.524,
+      "motor_torque_nm": 3.012,
+      "output_torque_nm": 102.39,
+      "motor_drift_deg": 3.798,
+      "fet_c": 38.5,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 158.01,
+      "iq_a": 15.712,
+      "motor_torque_nm": 3.048,
+      "output_torque_nm": 103.64,
+      "motor_drift_deg": 3.804,
+      "fet_c": 38.4,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 159.02,
+      "iq_a": 15.802,
+      "motor_torque_nm": 3.066,
+      "output_torque_nm": 104.23,
+      "motor_drift_deg": 3.81,
+      "fet_c": 38.7,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 160.0,
+      "iq_a": 15.877,
+      "motor_torque_nm": 3.08,
+      "output_torque_nm": 104.72,
+      "motor_drift_deg": 3.814,
+      "fet_c": 38.9,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 161.02,
+      "iq_a": 15.652,
+      "motor_torque_nm": 3.036,
+      "output_torque_nm": 103.24,
+      "motor_drift_deg": 3.822,
+      "fet_c": 38.8,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 162.0,
+      "iq_a": 16.023,
+      "motor_torque_nm": 3.108,
+      "output_torque_nm": 105.69,
+      "motor_drift_deg": 3.833,
+      "fet_c": 39.2,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 163.03,
+      "iq_a": 16.159,
+      "motor_torque_nm": 3.135,
+      "output_torque_nm": 106.58,
+      "motor_drift_deg": 3.853,
+      "fet_c": 39.3,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 164.01,
+      "iq_a": 16.2,
+      "motor_torque_nm": 3.143,
+      "output_torque_nm": 106.86,
+      "motor_drift_deg": 3.885,
+      "fet_c": 39.5,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 165.02,
+      "iq_a": 16.371,
+      "motor_torque_nm": 3.176,
+      "output_torque_nm": 107.98,
+      "motor_drift_deg": 3.9,
+      "fet_c": 39.7,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 166.03,
+      "iq_a": 16.345,
+      "motor_torque_nm": 3.171,
+      "output_torque_nm": 107.81,
+      "motor_drift_deg": 3.908,
+      "fet_c": 40.1,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 167.02,
+      "iq_a": 16.472,
+      "motor_torque_nm": 3.196,
+      "output_torque_nm": 108.65,
+      "motor_drift_deg": 3.917,
+      "fet_c": 40.4,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 168.02,
+      "iq_a": 16.517,
+      "motor_torque_nm": 3.204,
+      "output_torque_nm": 108.95,
+      "motor_drift_deg": 3.927,
+      "fet_c": 40.5,
+      "load_drift_deg": 0.066
+    },
+    {
+      "t_s": 169.02,
+      "iq_a": 16.686,
+      "motor_torque_nm": 3.237,
+      "output_torque_nm": 110.06,
+      "motor_drift_deg": 3.936,
+      "fet_c": 40.9,
+      "load_drift_deg": 0.033
+    },
+    {
+      "t_s": 170.01,
+      "iq_a": 16.694,
+      "motor_torque_nm": 3.239,
+      "output_torque_nm": 110.11,
+      "motor_drift_deg": 3.944,
+      "fet_c": 40.9,
+      "load_drift_deg": 0.033
+    },
+    {
+      "t_s": 171.01,
+      "iq_a": 16.707,
+      "motor_torque_nm": 3.241,
+      "output_torque_nm": 110.2,
+      "motor_drift_deg": 3.958,
+      "fet_c": 41.1,
+      "load_drift_deg": 0.011
+    },
+    {
+      "t_s": 172.02,
+      "iq_a": 16.509,
+      "motor_torque_nm": 3.203,
+      "output_torque_nm": 108.89,
+      "motor_drift_deg": 4.155,
+      "fet_c": 41.2,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 173.0,
+      "iq_a": 16.228,
+      "motor_torque_nm": 3.148,
+      "output_torque_nm": 107.04,
+      "motor_drift_deg": 4.156,
+      "fet_c": 41.2,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 174.03,
+      "iq_a": 15.865,
+      "motor_torque_nm": 3.078,
+      "output_torque_nm": 104.65,
+      "motor_drift_deg": 4.155,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 175.01,
+      "iq_a": 15.979,
+      "motor_torque_nm": 3.1,
+      "output_torque_nm": 105.4,
+      "motor_drift_deg": 4.155,
+      "fet_c": 41.5,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 176.02,
+      "iq_a": 15.747,
+      "motor_torque_nm": 3.055,
+      "output_torque_nm": 103.87,
+      "motor_drift_deg": 4.155,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 177.02,
+      "iq_a": 14.998,
+      "motor_torque_nm": 2.91,
+      "output_torque_nm": 98.93,
+      "motor_drift_deg": 4.154,
+      "fet_c": 41.5,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 178.03,
+      "iq_a": 14.91,
+      "motor_torque_nm": 2.892,
+      "output_torque_nm": 98.34,
+      "motor_drift_deg": 4.154,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 179.0,
+      "iq_a": 14.649,
+      "motor_torque_nm": 2.842,
+      "output_torque_nm": 96.63,
+      "motor_drift_deg": 4.154,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 180.02,
+      "iq_a": 14.391,
+      "motor_torque_nm": 2.792,
+      "output_torque_nm": 94.92,
+      "motor_drift_deg": 4.153,
+      "fet_c": 41.5,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 181.03,
+      "iq_a": 14.121,
+      "motor_torque_nm": 2.739,
+      "output_torque_nm": 93.14,
+      "motor_drift_deg": 4.152,
+      "fet_c": 41.3,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 182.03,
+      "iq_a": 13.722,
+      "motor_torque_nm": 2.662,
+      "output_torque_nm": 90.51,
+      "motor_drift_deg": 4.152,
+      "fet_c": 41.5,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 183.01,
+      "iq_a": 13.604,
+      "motor_torque_nm": 2.639,
+      "output_torque_nm": 89.73,
+      "motor_drift_deg": 4.151,
+      "fet_c": 41.3,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 184.02,
+      "iq_a": 13.487,
+      "motor_torque_nm": 2.617,
+      "output_torque_nm": 88.96,
+      "motor_drift_deg": 4.15,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 185.01,
+      "iq_a": 13.376,
+      "motor_torque_nm": 2.595,
+      "output_torque_nm": 88.23,
+      "motor_drift_deg": 4.149,
+      "fet_c": 41.1,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 186.0,
+      "iq_a": 12.963,
+      "motor_torque_nm": 2.515,
+      "output_torque_nm": 85.5,
+      "motor_drift_deg": 4.147,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 187.03,
+      "iq_a": 12.438,
+      "motor_torque_nm": 2.413,
+      "output_torque_nm": 82.04,
+      "motor_drift_deg": 4.146,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 188.02,
+      "iq_a": 12.408,
+      "motor_torque_nm": 2.407,
+      "output_torque_nm": 81.84,
+      "motor_drift_deg": 4.144,
+      "fet_c": 41.5,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 189.01,
+      "iq_a": 11.803,
+      "motor_torque_nm": 2.29,
+      "output_torque_nm": 77.85,
+      "motor_drift_deg": 4.139,
+      "fet_c": 41.6,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 190.01,
+      "iq_a": 12.24,
+      "motor_torque_nm": 2.375,
+      "output_torque_nm": 80.73,
+      "motor_drift_deg": 4.132,
+      "fet_c": 41.6,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 191.03,
+      "iq_a": 11.629,
+      "motor_torque_nm": 2.256,
+      "output_torque_nm": 76.7,
+      "motor_drift_deg": 4.122,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 192.02,
+      "iq_a": 11.783,
+      "motor_torque_nm": 2.286,
+      "output_torque_nm": 77.72,
+      "motor_drift_deg": 4.11,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 193.01,
+      "iq_a": 11.166,
+      "motor_torque_nm": 2.166,
+      "output_torque_nm": 73.65,
+      "motor_drift_deg": 4.088,
+      "fet_c": 41.4,
+      "load_drift_deg": -0.165
+    },
+    {
+      "t_s": 194.01,
+      "iq_a": 11.126,
+      "motor_torque_nm": 2.158,
+      "output_torque_nm": 73.39,
+      "motor_drift_deg": 3.983,
+      "fet_c": 41.2,
+      "load_drift_deg": -0.066
+    },
+    {
+      "t_s": 195.01,
+      "iq_a": 11.556,
+      "motor_torque_nm": 2.242,
+      "output_torque_nm": 76.22,
+      "motor_drift_deg": 3.755,
+      "fet_c": 41.3,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 196.01,
+      "iq_a": 11.615,
+      "motor_torque_nm": 2.253,
+      "output_torque_nm": 76.61,
+      "motor_drift_deg": 3.755,
+      "fet_c": 41.1,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 197.02,
+      "iq_a": 11.785,
+      "motor_torque_nm": 2.286,
+      "output_torque_nm": 77.73,
+      "motor_drift_deg": 3.756,
+      "fet_c": 41.1,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 198.02,
+      "iq_a": 12.167,
+      "motor_torque_nm": 2.36,
+      "output_torque_nm": 80.26,
+      "motor_drift_deg": 3.756,
+      "fet_c": 41.2,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 199.0,
+      "iq_a": 12.403,
+      "motor_torque_nm": 2.406,
+      "output_torque_nm": 81.81,
+      "motor_drift_deg": 3.757,
+      "fet_c": 41.2,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 200.02,
+      "iq_a": 12.614,
+      "motor_torque_nm": 2.447,
+      "output_torque_nm": 83.2,
+      "motor_drift_deg": 3.757,
+      "fet_c": 41.2,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 201.02,
+      "iq_a": 12.897,
+      "motor_torque_nm": 2.502,
+      "output_torque_nm": 85.07,
+      "motor_drift_deg": 3.758,
+      "fet_c": 41.4,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 202.02,
+      "iq_a": 12.772,
+      "motor_torque_nm": 2.478,
+      "output_torque_nm": 84.24,
+      "motor_drift_deg": 3.759,
+      "fet_c": 41.2,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 203.01,
+      "iq_a": 13.398,
+      "motor_torque_nm": 2.599,
+      "output_torque_nm": 88.37,
+      "motor_drift_deg": 3.76,
+      "fet_c": 41.4,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 204.01,
+      "iq_a": 13.644,
+      "motor_torque_nm": 2.647,
+      "output_torque_nm": 90.0,
+      "motor_drift_deg": 3.761,
+      "fet_c": 41.4,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 205.01,
+      "iq_a": 13.716,
+      "motor_torque_nm": 2.661,
+      "output_torque_nm": 90.47,
+      "motor_drift_deg": 3.762,
+      "fet_c": 41.4,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 206.0,
+      "iq_a": 13.68,
+      "motor_torque_nm": 2.654,
+      "output_torque_nm": 90.23,
+      "motor_drift_deg": 3.764,
+      "fet_c": 41.5,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 207.01,
+      "iq_a": 14.008,
+      "motor_torque_nm": 2.717,
+      "output_torque_nm": 92.39,
+      "motor_drift_deg": 3.766,
+      "fet_c": 41.6,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 208.03,
+      "iq_a": 14.471,
+      "motor_torque_nm": 2.807,
+      "output_torque_nm": 95.45,
+      "motor_drift_deg": 3.77,
+      "fet_c": 41.7,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 209.01,
+      "iq_a": 14.708,
+      "motor_torque_nm": 2.853,
+      "output_torque_nm": 97.01,
+      "motor_drift_deg": 3.777,
+      "fet_c": 41.7,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 210.02,
+      "iq_a": 14.909,
+      "motor_torque_nm": 2.892,
+      "output_torque_nm": 98.34,
+      "motor_drift_deg": 3.789,
+      "fet_c": 41.9,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 211.0,
+      "iq_a": 15.038,
+      "motor_torque_nm": 2.917,
+      "output_torque_nm": 99.19,
+      "motor_drift_deg": 3.797,
+      "fet_c": 42.0,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 212.01,
+      "iq_a": 15.353,
+      "motor_torque_nm": 2.978,
+      "output_torque_nm": 101.27,
+      "motor_drift_deg": 3.807,
+      "fet_c": 42.1,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 213.01,
+      "iq_a": 15.541,
+      "motor_torque_nm": 3.015,
+      "output_torque_nm": 102.51,
+      "motor_drift_deg": 3.818,
+      "fet_c": 42.2,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 214.02,
+      "iq_a": 15.53,
+      "motor_torque_nm": 3.013,
+      "output_torque_nm": 102.44,
+      "motor_drift_deg": 3.891,
+      "fet_c": 42.4,
+      "load_drift_deg": 0.121
+    },
+    {
+      "t_s": 215.0,
+      "iq_a": 15.863,
+      "motor_torque_nm": 3.077,
+      "output_torque_nm": 104.63,
+      "motor_drift_deg": 3.92,
+      "fet_c": 42.8,
+      "load_drift_deg": 0.099
+    },
+    {
+      "t_s": 216.02,
+      "iq_a": 15.994,
+      "motor_torque_nm": 3.103,
+      "output_torque_nm": 105.5,
+      "motor_drift_deg": 3.928,
+      "fet_c": 43.1,
+      "load_drift_deg": 0.077
+    },
+    {
+      "t_s": 217.0,
+      "iq_a": 16.149,
+      "motor_torque_nm": 3.133,
+      "output_torque_nm": 106.52,
+      "motor_drift_deg": 3.936,
+      "fet_c": 43.4,
+      "load_drift_deg": 0.077
+    },
+    {
+      "t_s": 218.01,
+      "iq_a": 16.25,
+      "motor_torque_nm": 3.153,
+      "output_torque_nm": 107.19,
+      "motor_drift_deg": 3.951,
+      "fet_c": 43.6,
+      "load_drift_deg": 0.055
+    },
+    {
+      "t_s": 219.03,
+      "iq_a": 16.117,
+      "motor_torque_nm": 3.127,
+      "output_torque_nm": 106.31,
+      "motor_drift_deg": 4.137,
+      "fet_c": 43.6,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 220.02,
+      "iq_a": 15.83,
+      "motor_torque_nm": 3.071,
+      "output_torque_nm": 104.42,
+      "motor_drift_deg": 4.14,
+      "fet_c": 43.8,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 221.01,
+      "iq_a": 15.794,
+      "motor_torque_nm": 3.064,
+      "output_torque_nm": 104.18,
+      "motor_drift_deg": 4.14,
+      "fet_c": 43.6,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 222.01,
+      "iq_a": 15.746,
+      "motor_torque_nm": 3.055,
+      "output_torque_nm": 103.86,
+      "motor_drift_deg": 4.14,
+      "fet_c": 43.7,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 223.02,
+      "iq_a": 15.351,
+      "motor_torque_nm": 2.978,
+      "output_torque_nm": 101.25,
+      "motor_drift_deg": 4.14,
+      "fet_c": 43.8,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 224.01,
+      "iq_a": 15.576,
+      "motor_torque_nm": 3.022,
+      "output_torque_nm": 102.74,
+      "motor_drift_deg": 4.14,
+      "fet_c": 43.8,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 225.01,
+      "iq_a": 15.079,
+      "motor_torque_nm": 2.925,
+      "output_torque_nm": 99.46,
+      "motor_drift_deg": 4.139,
+      "fet_c": 43.9,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 226.03,
+      "iq_a": 15.067,
+      "motor_torque_nm": 2.923,
+      "output_torque_nm": 99.38,
+      "motor_drift_deg": 4.139,
+      "fet_c": 44.5,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 227.0,
+      "iq_a": 14.955,
+      "motor_torque_nm": 2.901,
+      "output_torque_nm": 98.64,
+      "motor_drift_deg": 4.139,
+      "fet_c": 44.1,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 228.02,
+      "iq_a": 14.616,
+      "motor_torque_nm": 2.836,
+      "output_torque_nm": 96.41,
+      "motor_drift_deg": 4.139,
+      "fet_c": 43.9,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 229.0,
+      "iq_a": 14.413,
+      "motor_torque_nm": 2.796,
+      "output_torque_nm": 95.07,
+      "motor_drift_deg": 4.139,
+      "fet_c": 43.9,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 230.02,
+      "iq_a": 14.454,
+      "motor_torque_nm": 2.804,
+      "output_torque_nm": 95.34,
+      "motor_drift_deg": 4.138,
+      "fet_c": 44.2,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 231.03,
+      "iq_a": 14.284,
+      "motor_torque_nm": 2.771,
+      "output_torque_nm": 94.22,
+      "motor_drift_deg": 4.138,
+      "fet_c": 44.0,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 232.02,
+      "iq_a": 14.168,
+      "motor_torque_nm": 2.749,
+      "output_torque_nm": 93.45,
+      "motor_drift_deg": 4.137,
+      "fet_c": 44.1,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 233.03,
+      "iq_a": 13.831,
+      "motor_torque_nm": 2.683,
+      "output_torque_nm": 91.23,
+      "motor_drift_deg": 4.137,
+      "fet_c": 44.1,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 234.02,
+      "iq_a": 13.639,
+      "motor_torque_nm": 2.646,
+      "output_torque_nm": 89.97,
+      "motor_drift_deg": 4.137,
+      "fet_c": 44.0,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 235.03,
+      "iq_a": 13.603,
+      "motor_torque_nm": 2.639,
+      "output_torque_nm": 89.73,
+      "motor_drift_deg": 4.136,
+      "fet_c": 44.1,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 236.02,
+      "iq_a": 13.486,
+      "motor_torque_nm": 2.616,
+      "output_torque_nm": 88.96,
+      "motor_drift_deg": 4.136,
+      "fet_c": 44.2,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 237.02,
+      "iq_a": 13.307,
+      "motor_torque_nm": 2.582,
+      "output_torque_nm": 87.78,
+      "motor_drift_deg": 4.135,
+      "fet_c": 44.3,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 238.0,
+      "iq_a": 13.424,
+      "motor_torque_nm": 2.604,
+      "output_torque_nm": 88.55,
+      "motor_drift_deg": 4.134,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 239.02,
+      "iq_a": 13.009,
+      "motor_torque_nm": 2.524,
+      "output_torque_nm": 85.81,
+      "motor_drift_deg": 4.133,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 240.02,
+      "iq_a": 12.838,
+      "motor_torque_nm": 2.491,
+      "output_torque_nm": 84.68,
+      "motor_drift_deg": 4.132,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 241.02,
+      "iq_a": 12.643,
+      "motor_torque_nm": 2.453,
+      "output_torque_nm": 83.39,
+      "motor_drift_deg": 4.131,
+      "fet_c": 44.3,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 242.01,
+      "iq_a": 13.014,
+      "motor_torque_nm": 2.525,
+      "output_torque_nm": 85.84,
+      "motor_drift_deg": 4.13,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 243.02,
+      "iq_a": 12.622,
+      "motor_torque_nm": 2.449,
+      "output_torque_nm": 83.26,
+      "motor_drift_deg": 4.127,
+      "fet_c": 44.5,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 244.02,
+      "iq_a": 12.319,
+      "motor_torque_nm": 2.39,
+      "output_torque_nm": 81.26,
+      "motor_drift_deg": 4.123,
+      "fet_c": 44.5,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 245.02,
+      "iq_a": 12.308,
+      "motor_torque_nm": 2.388,
+      "output_torque_nm": 81.18,
+      "motor_drift_deg": 4.119,
+      "fet_c": 44.5,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 246.01,
+      "iq_a": 11.894,
+      "motor_torque_nm": 2.307,
+      "output_torque_nm": 78.45,
+      "motor_drift_deg": 4.114,
+      "fet_c": 44.5,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 247.01,
+      "iq_a": 12.253,
+      "motor_torque_nm": 2.377,
+      "output_torque_nm": 80.82,
+      "motor_drift_deg": 4.108,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 248.02,
+      "iq_a": 11.785,
+      "motor_torque_nm": 2.286,
+      "output_torque_nm": 77.73,
+      "motor_drift_deg": 4.102,
+      "fet_c": 44.5,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 249.02,
+      "iq_a": 11.556,
+      "motor_torque_nm": 2.242,
+      "output_torque_nm": 76.23,
+      "motor_drift_deg": 4.093,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 250.03,
+      "iq_a": 11.339,
+      "motor_torque_nm": 2.2,
+      "output_torque_nm": 74.79,
+      "motor_drift_deg": 4.085,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 251.02,
+      "iq_a": 11.321,
+      "motor_torque_nm": 2.196,
+      "output_torque_nm": 74.67,
+      "motor_drift_deg": 4.055,
+      "fet_c": 44.4,
+      "load_drift_deg": -0.099
+    },
+    {
+      "t_s": 252.03,
+      "iq_a": 11.203,
+      "motor_torque_nm": 2.173,
+      "output_torque_nm": 73.9,
+      "motor_drift_deg": 4.002,
+      "fet_c": 44.3,
+      "load_drift_deg": -0.044
+    },
+    {
+      "t_s": 253.0,
+      "iq_a": 11.368,
+      "motor_torque_nm": 2.205,
+      "output_torque_nm": 74.98,
+      "motor_drift_deg": 3.788,
+      "fet_c": 44.5,
+      "load_drift_deg": 0.132
+    },
+    {
+      "t_s": 254.01,
+      "iq_a": 11.771,
+      "motor_torque_nm": 2.284,
+      "output_torque_nm": 77.64,
+      "motor_drift_deg": 3.787,
+      "fet_c": 44.4,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 255.01,
+      "iq_a": 11.777,
+      "motor_torque_nm": 2.285,
+      "output_torque_nm": 77.68,
+      "motor_drift_deg": 3.788,
+      "fet_c": 44.5,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 256.02,
+      "iq_a": 11.964,
+      "motor_torque_nm": 2.321,
+      "output_torque_nm": 78.92,
+      "motor_drift_deg": 3.788,
+      "fet_c": 44.5,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 257.0,
+      "iq_a": 12.516,
+      "motor_torque_nm": 2.428,
+      "output_torque_nm": 82.55,
+      "motor_drift_deg": 3.789,
+      "fet_c": 44.5,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 258.01,
+      "iq_a": 12.731,
+      "motor_torque_nm": 2.47,
+      "output_torque_nm": 83.97,
+      "motor_drift_deg": 3.789,
+      "fet_c": 44.8,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 259.0,
+      "iq_a": 12.894,
+      "motor_torque_nm": 2.501,
+      "output_torque_nm": 85.05,
+      "motor_drift_deg": 3.79,
+      "fet_c": 44.8,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 260.02,
+      "iq_a": 12.997,
+      "motor_torque_nm": 2.521,
+      "output_torque_nm": 85.73,
+      "motor_drift_deg": 3.791,
+      "fet_c": 44.7,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 261.01,
+      "iq_a": 13.184,
+      "motor_torque_nm": 2.558,
+      "output_torque_nm": 86.96,
+      "motor_drift_deg": 3.792,
+      "fet_c": 44.7,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 262.02,
+      "iq_a": 13.425,
+      "motor_torque_nm": 2.605,
+      "output_torque_nm": 88.55,
+      "motor_drift_deg": 3.793,
+      "fet_c": 44.7,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 263.03,
+      "iq_a": 13.701,
+      "motor_torque_nm": 2.658,
+      "output_torque_nm": 90.37,
+      "motor_drift_deg": 3.794,
+      "fet_c": 44.8,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 264.0,
+      "iq_a": 13.678,
+      "motor_torque_nm": 2.653,
+      "output_torque_nm": 90.22,
+      "motor_drift_deg": 3.796,
+      "fet_c": 44.9,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 265.0,
+      "iq_a": 14.269,
+      "motor_torque_nm": 2.768,
+      "output_torque_nm": 94.12,
+      "motor_drift_deg": 3.798,
+      "fet_c": 45.1,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 266.03,
+      "iq_a": 14.423,
+      "motor_torque_nm": 2.798,
+      "output_torque_nm": 95.14,
+      "motor_drift_deg": 3.804,
+      "fet_c": 45.0,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 267.01,
+      "iq_a": 14.58,
+      "motor_torque_nm": 2.828,
+      "output_torque_nm": 96.17,
+      "motor_drift_deg": 3.81,
+      "fet_c": 45.1,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 268.0,
+      "iq_a": 14.816,
+      "motor_torque_nm": 2.874,
+      "output_torque_nm": 97.73,
+      "motor_drift_deg": 3.818,
+      "fet_c": 45.3,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 269.01,
+      "iq_a": 15.092,
+      "motor_torque_nm": 2.928,
+      "output_torque_nm": 99.55,
+      "motor_drift_deg": 3.829,
+      "fet_c": 45.3,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 270.03,
+      "iq_a": 15.474,
+      "motor_torque_nm": 3.002,
+      "output_torque_nm": 102.07,
+      "motor_drift_deg": 3.85,
+      "fet_c": 45.4,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 271.02,
+      "iq_a": 15.576,
+      "motor_torque_nm": 3.022,
+      "output_torque_nm": 102.74,
+      "motor_drift_deg": 3.905,
+      "fet_c": 45.9,
+      "load_drift_deg": 0.154
+    },
+    {
+      "t_s": 272.02,
+      "iq_a": 15.713,
+      "motor_torque_nm": 3.048,
+      "output_torque_nm": 103.65,
+      "motor_drift_deg": 3.919,
+      "fet_c": 46.0,
+      "load_drift_deg": 0.121
+    },
+    {
+      "t_s": 273.02,
+      "iq_a": 15.876,
+      "motor_torque_nm": 3.08,
+      "output_torque_nm": 104.72,
+      "motor_drift_deg": 3.934,
+      "fet_c": 46.0,
+      "load_drift_deg": 0.121
+    },
+    {
+      "t_s": 274.0,
+      "iq_a": 15.987,
+      "motor_torque_nm": 3.101,
+      "output_torque_nm": 105.45,
+      "motor_drift_deg": 3.961,
+      "fet_c": 46.5,
+      "load_drift_deg": 0.099
+    },
+    {
+      "t_s": 275.02,
+      "iq_a": 15.794,
+      "motor_torque_nm": 3.064,
+      "output_torque_nm": 104.18,
+      "motor_drift_deg": 4.13,
+      "fet_c": 46.5,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 276.03,
+      "iq_a": 15.819,
+      "motor_torque_nm": 3.069,
+      "output_torque_nm": 104.34,
+      "motor_drift_deg": 4.133,
+      "fet_c": 46.6,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 277.02,
+      "iq_a": 15.63,
+      "motor_torque_nm": 3.032,
+      "output_torque_nm": 103.09,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.8,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 278.03,
+      "iq_a": 15.674,
+      "motor_torque_nm": 3.041,
+      "output_torque_nm": 103.38,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.8,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 279.02,
+      "iq_a": 15.441,
+      "motor_torque_nm": 2.996,
+      "output_torque_nm": 101.85,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.7,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 280.01,
+      "iq_a": 15.383,
+      "motor_torque_nm": 2.984,
+      "output_torque_nm": 101.47,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.7,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 281.02,
+      "iq_a": 15.533,
+      "motor_torque_nm": 3.013,
+      "output_torque_nm": 102.46,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.6,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 282.02,
+      "iq_a": 15.176,
+      "motor_torque_nm": 2.944,
+      "output_torque_nm": 100.1,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.6,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 283.01,
+      "iq_a": 15.382,
+      "motor_torque_nm": 2.984,
+      "output_torque_nm": 101.46,
+      "motor_drift_deg": 4.134,
+      "fet_c": 47.2,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 284.03,
+      "iq_a": 15.066,
+      "motor_torque_nm": 2.923,
+      "output_torque_nm": 99.37,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.8,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 285.02,
+      "iq_a": 14.975,
+      "motor_torque_nm": 2.905,
+      "output_torque_nm": 98.77,
+      "motor_drift_deg": 4.134,
+      "fet_c": 47.0,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 286.0,
+      "iq_a": 14.765,
+      "motor_torque_nm": 2.864,
+      "output_torque_nm": 97.39,
+      "motor_drift_deg": 4.134,
+      "fet_c": 46.9,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 287.01,
+      "iq_a": 14.774,
+      "motor_torque_nm": 2.866,
+      "output_torque_nm": 97.45,
+      "motor_drift_deg": 4.134,
+      "fet_c": 47.0,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 288.02,
+      "iq_a": 14.767,
+      "motor_torque_nm": 2.865,
+      "output_torque_nm": 97.4,
+      "motor_drift_deg": 4.134,
+      "fet_c": 47.1,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 289.02,
+      "iq_a": 15.014,
+      "motor_torque_nm": 2.913,
+      "output_torque_nm": 99.03,
+      "motor_drift_deg": 4.133,
+      "fet_c": 47.0,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 290.03,
+      "iq_a": 14.93,
+      "motor_torque_nm": 2.896,
+      "output_torque_nm": 98.48,
+      "motor_drift_deg": 4.133,
+      "fet_c": 47.2,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 291.0,
+      "iq_a": 14.484,
+      "motor_torque_nm": 2.81,
+      "output_torque_nm": 95.54,
+      "motor_drift_deg": 4.133,
+      "fet_c": 47.1,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 292.01,
+      "iq_a": 14.442,
+      "motor_torque_nm": 2.802,
+      "output_torque_nm": 95.26,
+      "motor_drift_deg": 4.133,
+      "fet_c": 47.2,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 293.01,
+      "iq_a": 14.432,
+      "motor_torque_nm": 2.8,
+      "output_torque_nm": 95.2,
+      "motor_drift_deg": 4.133,
+      "fet_c": 47.3,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 294.02,
+      "iq_a": 14.235,
+      "motor_torque_nm": 2.762,
+      "output_torque_nm": 93.89,
+      "motor_drift_deg": 4.132,
+      "fet_c": 47.3,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 295.0,
+      "iq_a": 14.113,
+      "motor_torque_nm": 2.738,
+      "output_torque_nm": 93.09,
+      "motor_drift_deg": 4.132,
+      "fet_c": 47.5,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 296.02,
+      "iq_a": 14.199,
+      "motor_torque_nm": 2.755,
+      "output_torque_nm": 93.66,
+      "motor_drift_deg": 4.132,
+      "fet_c": 47.4,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 297.02,
+      "iq_a": 13.873,
+      "motor_torque_nm": 2.691,
+      "output_torque_nm": 91.51,
+      "motor_drift_deg": 4.132,
+      "fet_c": 47.5,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 298.01,
+      "iq_a": 14.039,
+      "motor_torque_nm": 2.723,
+      "output_torque_nm": 92.6,
+      "motor_drift_deg": 4.132,
+      "fet_c": 47.5,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 299.03,
+      "iq_a": 13.831,
+      "motor_torque_nm": 2.683,
+      "output_torque_nm": 91.23,
+      "motor_drift_deg": 4.131,
+      "fet_c": 47.6,
+      "load_drift_deg": -0.055
+    },
+    {
+      "t_s": 300.02,
+      "iq_a": 13.791,
+      "motor_torque_nm": 2.675,
+      "output_torque_nm": 90.96,
+      "motor_drift_deg": 4.131,
+      "fet_c": 47.7,
+      "load_drift_deg": -0.055
+    }
+  ],
+  "summary": {
+    "peak_iq_a": 18.046,
+    "mean_iq_a": 11.848,
+    "peak_output_torque_nm": 119.03,
+    "max_motor_drift_deg": 9.063,
+    "max_load_drift_deg": 6.726,
+    "peak_fet_c": 48.0
+  },
+  "final_errors": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}
