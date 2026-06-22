@@ -1,0 +1,66 @@
+{
+  "serial_number": "3482345a3034",
+  "vbus_v": 39.93757247924805,
+  "fet_temp_start_c": 36.96934127807617,
+  "stored": {
+    "R_ohm": 0.11044450849294662,
+    "L_H": 5.887771840207279e-05,
+    "pole_pairs": 20,
+    "torque_constant": 0.08100000023841858,
+    "current_lim": 25.0,
+    "pos_gain": 90.0,
+    "vel_gain": 0.4000000059604645,
+    "vel_integrator_gain": 0.800000011920929
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "characterize": {
+    "status": "PASS",
+    "runs": [
+      {
+        "cmd_turns_s": 2.0,
+        "mean_vel_turns_s": 2.001953363418579,
+        "mean_abs_iq_a": 0.6072850820918878,
+        "max_abs_iq_a": 1.161563754081726,
+        "mean_vq_v": 0.7414467414220174,
+        "omega_elec_rad_s": 251.57287917380742,
+        "bemf_q_v": 0.6829823242020419,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 4.0,
+        "mean_vel_turns_s": 3.9876302083333335,
+        "mean_abs_iq_a": 0.5312157784899075,
+        "max_abs_iq_a": 0.9960636496543884,
+        "mean_vq_v": 1.3374134222666423,
+        "omega_elec_rad_s": 501.10039070930947,
+        "bemf_q_v": 1.2826961644857218,
+        "reached": true
+      },
+      {
+        "cmd_turns_s": 6.0,
+        "mean_vel_turns_s": -1.3229373114338765,
+        "mean_abs_iq_a": 11.504986568291981,
+        "max_abs_iq_a": 12.038802146911621,
+        "mean_vq_v": 2.5272626663247744,
+        "omega_elec_rad_s": -166.24520555041994,
+        "bemf_q_v": 1.2566000795718137,
+        "reached": false
+      }
+    ],
+    "flux_linkage_wb": 0.002590979497704832,
+    "kt_measured": 0.07772938493114497,
+    "kv_measured": 106.39476958843576
+  },
+  "fet_temp_end_c": 37.58555603027344,
+  "post_errors": [
+    512,
+    16,
+    0,
+    1
+  ]
+}

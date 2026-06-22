@@ -1,0 +1,76 @@
+{
+  "serial_number": "3482345a3034",
+  "vbus_v": 39.8763427734375,
+  "fet_temp_start_c": 28.248275756835938,
+  "stored": {
+    "R_ohm": 0.11044450849294662,
+    "L_H": 5.887771840207279e-05,
+    "pole_pairs": 20,
+    "torque_constant": 0.08100000023841858,
+    "current_lim": 25.0,
+    "pos_gain": 90.0,
+    "vel_gain": 0.4000000059604645,
+    "vel_integrator_gain": 0.800000011920929
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "characterize": {
+    "status": "PASS",
+    "runs": [
+      {
+        "cmd_turns_s": 5.0,
+        "mean_vel_turns_s": -0.004831949559350808,
+        "mean_abs_iq_a": 24.996979014078775,
+        "max_abs_iq_a": 25.139511108398438,
+        "mean_vq_v": 2.676825777689616,
+        "omega_elec_rad_s": -0.6072006895269175,
+        "bemf_q_v": -0.08395328332881613,
+        "reached": false
+      },
+      {
+        "cmd_turns_s": 10.0,
+        "mean_vel_turns_s": -0.005594889695445696,
+        "mean_abs_iq_a": 25.015526453653973,
+        "max_abs_iq_a": 25.339370727539062,
+        "mean_vq_v": 2.756918017069499,
+        "omega_elec_rad_s": -0.7030745745942973,
+        "bemf_q_v": -0.005909506796618391,
+        "reached": false
+      },
+      {
+        "cmd_turns_s": 15.0,
+        "mean_vel_turns_s": 0.005594889679923653,
+        "mean_abs_iq_a": 25.00671844482422,
+        "max_abs_iq_a": 25.290786743164062,
+        "mean_vq_v": 2.824579350153605,
+        "omega_elec_rad_s": 0.70307457264374,
+        "bemf_q_v": 0.06272462249349164,
+        "reached": false
+      },
+      {
+        "cmd_turns_s": 20.0,
+        "mean_vel_turns_s": 0.0035603843318919343,
+        "mean_abs_iq_a": 25.009372647603353,
+        "max_abs_iq_a": 25.220163345336914,
+        "mean_vq_v": 2.8781398057937624,
+        "omega_elec_rad_s": 0.44741109044111615,
+        "bemf_q_v": 0.11599193601226698,
+        "reached": false
+      }
+    ],
+    "flux_linkage_wb": null,
+    "kt_measured": null,
+    "kv_measured": null
+  },
+  "fet_temp_end_c": 31.253459930419922,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ]
+}
