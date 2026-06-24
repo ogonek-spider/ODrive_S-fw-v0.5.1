@@ -578,13 +578,33 @@ bool Encoder::update() {
     if(mode_ & MODE_FLAG_ABS)
         count_in_cpr_ = pos_abs_latched;
 
+    // Harmonic (eccentricity) compensation. The dominant magnetic-encoder
+    // error is periodic in one mechanical revolution: a 1st harmonic from
+    // magnet eccentricity and a 2nd harmonic from tilt/nonlinearity. Subtract
+    // the fitted error (in counts) from the raw count before it feeds the PLL
+    // and the electrical phase. The error is periodic in cpr, so it is the
+    // same offset for the wrapped (count_in_cpr_) and linear (shadow_count_)
+    // trackers.
+    float harmonic_err_counts = 0.0f;
+    if (config_.enable_harmonic_compensation) {
+        float theta = (2.0f * M_PI) * (float)count_in_cpr_ / (float)config_.cpr;
+        harmonic_err_counts =
+                config_.harmonic_cos_1 * our_arm_cos_f32(theta) +
+                config_.harmonic_sin_1 * our_arm_sin_f32(theta) +
+                config_.harmonic_cos_2 * our_arm_cos_f32(2.0f * theta) +
+                config_.harmonic_sin_2 * our_arm_sin_f32(2.0f * theta);
+    }
+    harmonic_error_ = harmonic_err_counts;
+
     //// run pll (for now pll is in units of encoder counts)
     // Predict current pos
     pos_estimate_counts_ += current_meas_period * vel_estimate_counts_;
     pos_cpr_counts_      += current_meas_period * vel_estimate_counts_;
-    // discrete phase detector
-    float delta_pos_counts = (float)(shadow_count_ - (int32_t)std::floor(pos_estimate_counts_));
-    float delta_pos_cpr_counts = (float)(count_in_cpr_ - (int32_t)std::floor(pos_cpr_counts_));
+    // discrete phase detector. The integer count subtraction is unchanged; the
+    // bounded harmonic correction (zero when disabled) is added as a float so
+    // the disabled path stays bit-identical to the original.
+    float delta_pos_counts = (float)(shadow_count_ - (int32_t)std::floor(pos_estimate_counts_)) - harmonic_err_counts;
+    float delta_pos_cpr_counts = (float)(count_in_cpr_ - (int32_t)std::floor(pos_cpr_counts_)) - harmonic_err_counts;
     delta_pos_cpr_counts = wrap_pm(delta_pos_cpr_counts, 0.5f * (float)(config_.cpr));
     // pll feedback
     pos_estimate_counts_ += current_meas_period * pll_kp_ * delta_pos_counts;
@@ -648,7 +668,9 @@ bool Encoder::update() {
         if (interpolation_ > 1.0f) interpolation_ = 1.0f;
         if (interpolation_ < 0.0f) interpolation_ = 0.0f;
     }
-    float interpolated_enc = corrected_enc + interpolation_;
+    // Subtract the harmonic correction (zero when disabled) from the count that
+    // feeds the electrical phase, so commutation tracks the true rotor angle.
+    float interpolated_enc = (float)corrected_enc - harmonic_err_counts + interpolation_;
 
     //// compute electrical phase
     //TODO avoid recomputing elec_rad_per_enc every time

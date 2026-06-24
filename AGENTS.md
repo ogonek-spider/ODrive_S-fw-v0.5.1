@@ -168,6 +168,84 @@ Holding current vs joint angle: ~2.8 A near horizontal (max gravity moment),
 ~0.8 A near vertical. Before entering closed loop in position mode, set
 `controller.input_pos = axis1.encoder.pos_estimate` to avoid a jump.
 
+## Local Modification: Encoder Harmonic Compensation
+
+Ported from the upstream v0.6 feature (TODO done 2026-06-24). Magnetic absolute
+encoders (onboard AS5047P, joint MT6701) have a systematic angle error that is
+periodic in one **mechanical** revolution: a 1st harmonic from magnet
+eccentricity (the same defect behind the AS5047P magnet-slip troubles) and a
+2nd harmonic from tilt / field nonlinearity. Left uncorrected this becomes:
+
+- motor-side AS5047P → a `pole_pairs`-multiplied **electrical** commutation
+  error (≈15–20° elec on the 20-pole-pair LA8308), i.e. cyclic Iq ripple and
+  rough low-speed motion;
+- joint-side MT6701 → a direct 1:1 **joint-angle** error (~±0.5–1°), at the
+  same order as the ~1° backlash floor.
+
+Firmware models the error in counts and subtracts it from both the position
+estimate and the electrical phase inside `Encoder::update()`:
+
+```
+err(theta) = c1·cos θ + s1·sin θ + c2·cos 2θ + s2·sin 2θ,  θ = 2π·count_in_cpr/cpr
+corrected_count = count_in_cpr − err(θ)
+```
+
+Per-encoder config fields (saved to NVM, default off → no behavior change):
+
+```python
+odrv0.axis0.encoder.config.enable_harmonic_compensation  # bool
+odrv0.axis0.encoder.config.harmonic_cos_1  # counts
+odrv0.axis0.encoder.config.harmonic_sin_1
+odrv0.axis0.encoder.config.harmonic_cos_2
+odrv0.axis0.encoder.config.harmonic_sin_2
+odrv0.axis0.encoder.harmonic_error          # readonly, live correction [counts]
+```
+
+Touched files: `Firmware/MotorControl/encoder.hpp`,
+`Firmware/MotorControl/encoder.cpp`, `Firmware/odrive-interface.yaml`. Like the
+other added config fields, this changes the NVM layout — **back up config to
+JSON before flashing** (see Flashing Notes).
+
+### Calibrating the coefficients (offline)
+
+Coefficients are measured by spinning the motor at a constant velocity and
+least-squares-fitting the deviation of the raw counts from a straight line.
+Tool: `spider-motor-tools/harmonic_calibration.py` (config changes are RAM-only
+unless `--save`; averages several passes and reports pass-to-pass spread).
+
+**Spin FAST.** This was the key lesson on the bench: at low speed (2–6 t/s) the
+fit is dominated by **cogging-induced velocity ripple**, not the encoder's fixed
+error, and is not repeatable — coefficients swing run-to-run and shrink with
+speed (a true sensor error is speed-independent). At **≥12 motor t/s** inertia
+filters the cogging ripple and the fit stabilises (pass spread < ~10 %). The
+tool defaults to `--speed 12 --averages 4` and warns if the pass spread is large.
+
+```bash
+# axis0 AS5047P (on the motor shaft, ratio 1). Dry run first, then --apply --save.
+.venv/bin/python spider-motor-tools/harmonic_calibration.py \
+    --motor-id 7 --encoder-axis 0 --speed 12 --enc-revs 35 --averages 4
+.venv/bin/python spider-motor-tools/harmonic_calibration.py \
+    --motor-id 7 --encoder-axis 0 --speed 12 --enc-revs 35 --averages 4 --apply --save
+
+# axis1 MT6701 (after the ~34:1 gearbox): joint must be free to rotate full
+# output turns; set --ratio so the sweep covers whole encoder revolutions.
+.venv/bin/python spider-motor-tools/harmonic_calibration.py \
+    --motor-id 7 --drive-axis 0 --encoder-axis 1 --ratio 34 --speed 12 \
+    --enc-revs 4 --averages 4 --apply --save
+```
+
+The dry run prints fitted amplitudes (counts / mechanical degrees, electrical
+degrees for an on-shaft encoder), the before/after error RMS, and per-pass
+spread — confirm the spread is small before saving.
+
+**Bench result (motor #7 AS5047P, axis0, 2026-06-24, flashed + saved):**
+intrinsic error is modest — 1st harmonic ≈ 0.49° mech (~7° electrical), 2nd
+≈ 0.25° mech; coefficients `cos_1=11.4, sin_1=-19.1, cos_2=7.4, sin_2=8.5`.
+A common-mode A/B (raw vs firmware-corrected in the same pass) confirmed the
+correction is applied and reduces the 1st-harmonic electrical error. The
+dominant low-speed roughness on this geared joint is cogging, which is a
+separate problem (anticogging), not encoder harmonics.
+
 ## Build
 
 Preferred build path is Docker from the repository root. On Apple Silicon, the Docker build must run as `linux/amd64` because the old Ubuntu bionic `tup` PPA package is not available for arm64. The local `dockerbuild.sh` and `Dockerfile` have been patched for that.

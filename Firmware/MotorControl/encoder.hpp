@@ -35,6 +35,16 @@ public:
         uint16_t abs_spi_cs_gpio_pin = 1;
         uint16_t sincos_gpio_pin_sin = 3;
         uint16_t sincos_gpio_pin_cos = 4;
+        // Harmonic (eccentricity) compensation for magnetic absolute encoders.
+        // Subtracts a fitted 1st/2nd harmonic of the per-revolution encoder
+        // error, expressed in counts, from the position estimate and the
+        // electrical phase. Coefficients are measured offline (see
+        // spider-motor-tools) and saved to NVM.
+        bool enable_harmonic_compensation = false;
+        float harmonic_cos_1 = 0.0f; // [count]
+        float harmonic_sin_1 = 0.0f; // [count]
+        float harmonic_cos_2 = 0.0f; // [count]
+        float harmonic_sin_2 = 0.0f; // [count]
 
         // custom setters
         Encoder* parent = nullptr;
@@ -127,6 +137,7 @@ public:
     uint32_t mt6701_debug_start_ok_count_ = 0;
     uint32_t mt6701_debug_start_fail_count_ = 0;
     uint32_t mt6701_debug_mode_ = 0;
+    float harmonic_error_ = 0.0f; // live harmonic correction applied [count]
 
     float pos_estimate_ = 0.0f; // [turn]
     float vel_estimate_ = 0.0f; // [turn/s]

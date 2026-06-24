@@ -18,5 +18,17 @@
 
 ## Firmware
 
-- [ ] Port harmonic compensation
+- [x] Port harmonic compensation
   https://docs.odriverobotics.com/v/latest/manual/hardware-config.html#harmonic-compensation
+  - Per-encoder 1st/2nd-harmonic (eccentricity) correction added to
+    `Encoder::update()`; config fields `enable_harmonic_compensation`,
+    `harmonic_{cos,sin}_{1,2}` (in counts) + readonly `harmonic_error`.
+    Coefficients are measured offline by
+    `spider-motor-tools/harmonic_calibration.py` (constant-velocity sweep +
+    least-squares fit). See AGENTS.md "Encoder Harmonic Compensation".
+  - **Flashed + axis0 calibrated/saved on bench ODrive 3482345a3034 (motor #7),
+    2026-06-24.** AS5047P intrinsic error is modest (~0.49° mech 1st / 0.25° 2nd);
+    correction verified applied via common-mode A/B. Key lesson: calibrate at
+    **≥12 motor t/s** — low speed is dominated by cogging velocity ripple and is
+    not repeatable. axis1 MT6701 not yet calibrated (needs the joint free to
+    rotate full output turns).
