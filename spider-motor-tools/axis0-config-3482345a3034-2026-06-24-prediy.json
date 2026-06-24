@@ -1,0 +1,50 @@
+{
+  "serial": "0x3482345a3034",
+  "motor.config": {
+    "motor_type": 0,
+    "pole_pairs": 20,
+    "torque_constant": 0.08100000023841858,
+    "current_lim": 25.0,
+    "calibration_current": 8.0,
+    "phase_resistance": 0.11199094355106354,
+    "phase_inductance": 5.864119884790853e-05,
+    "pre_calibrated": true,
+    "requested_current_range": 60.0,
+    "current_control_bandwidth": 1000.0
+  },
+  "encoder.config": {
+    "mode": 257,
+    "cpr": 16384,
+    "abs_spi_cs_gpio_pin": 7,
+    "pre_calibrated": true,
+    "offset_float": 0.8956406116485596,
+    "direction": 1,
+    "use_index": false,
+    "calib_range": 0.019999999552965164,
+    "calib_scan_distance": 50.26548385620117
+  },
+  "controller.config": {
+    "control_mode": 2,
+    "input_mode": 1,
+    "pos_gain": 90.0,
+    "vel_gain": 0.4000000059604645,
+    "vel_integrator_gain": 0.800000011920929,
+    "vel_limit": 20.0,
+    "vel_limit_tolerance": 1.2000000476837158
+  },
+  "motor_thermistor.config": {
+    "enabled": true,
+    "gpio_pin": 4,
+    "temp_limit_lower": 70.0,
+    "temp_limit_upper": 90.0,
+    "poly_coefficient_0": -1352.19091796875,
+    "poly_coefficient_1": 1590.6881103515625,
+    "poly_coefficient_2": -684.0218505859375,
+    "poly_coefficient_3": 141.42605590820312
+  },
+  "axis.config": {
+    "startup_encoder_offset_calibration": false,
+    "startup_motor_calibration": false,
+    "startup_closed_loop_control": false
+  }
+}

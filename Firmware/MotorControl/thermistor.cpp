@@ -22,7 +22,23 @@ ThermistorCurrentLimiter::ThermistorCurrentLimiter(uint16_t adc_channel,
 void ThermistorCurrentLimiter::update() {
     const float voltage = get_adc_voltage_channel(adc_channel_);
     const float normalized_voltage = voltage / adc_ref_voltage;
-    temperature_ = horner_fma(normalized_voltage, coefficients_, num_coeffs_);
+    const float raw_temp = horner_fma(normalized_voltage, coefficients_, num_coeffs_);
+
+    // Low-pass filter the temperature. The thermistor ADC reads pick up motor
+    // PWM noise on a high-impedance divider, so a single raw sample can glitch
+    // by tens of degrees (seen up to +24 C). Both the over-temp trip and the
+    // current-derate path consume this value every control loop, so the noise
+    // would false-trip and jitter the current limit near the thermal limit.
+    // The winding temperature itself only moves over seconds, so a 1 s time
+    // constant rejects the noise without meaningfully lagging real heating.
+    // alpha is derived from the loop period so it is independent of loop rate.
+    const float tau_s = 1.0f;
+    const float alpha = current_meas_period / (tau_s + current_meas_period);
+    if (!(temperature_ == temperature_)) { // seed on the first sample (NaN)
+        temperature_ = raw_temp;
+    } else {
+        temperature_ += alpha * (raw_temp - temperature_);
+    }
 }
 
 bool ThermistorCurrentLimiter::do_checks() {
