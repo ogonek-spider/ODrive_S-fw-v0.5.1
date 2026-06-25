@@ -795,7 +795,6 @@ interfaces:
       mt6701_debug_start_ok_count: readonly uint32
       mt6701_debug_start_fail_count: readonly uint32
       mt6701_debug_mode: readonly uint32
-      harmonic_error: readonly float32
       config:
         c_is_class: False
         attributes:
@@ -825,15 +824,6 @@ interfaces:
           ignore_illegal_hall_state: bool
           sincos_gpio_pin_sin: uint16
           sincos_gpio_pin_cos: uint16
-          enable_harmonic_compensation:
-            type: bool
-            doc: Subtract the calibrated 1st/2nd harmonic encoder error from the position and electrical phase.
-          harmonic_cos_1:
-            type: float32
-            doc: 1st-harmonic cosine coefficient of the encoder error, in counts. Error model err = c1*cos(t)+s1*sin(t)+c2*cos(2t)+s2*sin(2t), t = 2*pi*count_in_cpr/cpr.
-          harmonic_sin_1: {type: float32, doc: 1st-harmonic sine coefficient of the encoder error, in counts.}
-          harmonic_cos_2: {type: float32, doc: 2nd-harmonic cosine coefficient of the encoder error, in counts.}
-          harmonic_sin_2: {type: float32, doc: 2nd-harmonic sine coefficient of the encoder error, in counts.}
     functions:
       set_linear_count: {in: {count: int32}}
       set_zero:
