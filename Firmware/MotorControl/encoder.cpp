@@ -550,7 +550,12 @@ bool Encoder::update() {
             if (abs_spi_pos_updated_ == false) {
                 // Low pass filter the error
                 spi_error_rate_ += current_meas_period * (1.0f - spi_error_rate_);
-                if (spi_error_rate_ > 0.005f)
+                // Local mod: relaxed from 0.005 (0.5%) to 0.05 (5%). The MT6701 on
+                // flying leads picks up PWM EMI: ~0.5% missed SPI samples at steady
+                // spin and ~2.1% during the motor-cal inductance (HF) injection, which
+                // tripped the original threshold. 5% still catches a truly
+                // disconnected encoder (~100% misses) with margin over the worst case.
+                if (spi_error_rate_ > 0.05f)
                     set_error(ERROR_ABS_SPI_COM_FAIL);
             } else {
                 // Low pass filter the error
