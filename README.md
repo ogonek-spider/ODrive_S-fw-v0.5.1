@@ -27,3 +27,6 @@ Please refer to the [Developer Guide](https://docs.odriverobotics.com/developer-
 
 ### TODO:
 port harmonic compensation https://docs.odriverobotics.com/v/latest/manual/hardware-config.html#harmonic-compensation
+(end badly last time not enought computation power, bricked odrive)
+
+the rate-based ABS_SPI_COM_FAIL threshold (5%) with a consecutive-miss counter (trips only after 200 misses in a row) plus a new spi_consec_misses_ field.
