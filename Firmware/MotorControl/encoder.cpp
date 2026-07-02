@@ -548,18 +548,22 @@ bool Encoder::update() {
         case MODE_SPI_ABS_AEAT:
         case MODE_SPI_ABS_MT6701: {
             if (abs_spi_pos_updated_ == false) {
-                // Low pass filter the error
+                // Local mod: detect a truly disconnected encoder by CONSECUTIVE
+                // missed samples rather than an averaged miss rate. The MT6701 on
+                // flying leads picks up motor PWM EMI: individual samples are lost
+                // at random (~0.5% steady, ~24% during motor-cal HF injection), but
+                // never many in a row. A rate-based threshold accumulates those
+                // random glitches and false-trips; a consecutive counter does not,
+                // because any good sample resets it to zero. A disconnected encoder
+                // misses ~100% of samples, so the run climbs past the threshold in
+                // a few ms. The control loop runs at ~8 kHz, so 250 consecutive
+                // misses is ~30 ms of solid loss before tripping.
                 spi_error_rate_ += current_meas_period * (1.0f - spi_error_rate_);
-                // Local mod: relaxed from 0.005 (0.5%) to 0.05 (5%). The MT6701 on
-                // flying leads picks up PWM EMI: ~0.5% missed SPI samples at steady
-                // spin and ~2.1% during the motor-cal inductance (HF) injection, which
-                // tripped the original threshold. 5% still catches a truly
-                // disconnected encoder (~100% misses) with margin over the worst case.
-                if (spi_error_rate_ > 0.05f)
+                if (++spi_consecutive_errors_ >= 250)
                     set_error(ERROR_ABS_SPI_COM_FAIL);
             } else {
-                // Low pass filter the error
                 spi_error_rate_ += current_meas_period * (0.0f - spi_error_rate_);
+                spi_consecutive_errors_ = 0;
             }
 
             abs_spi_pos_updated_ = false;

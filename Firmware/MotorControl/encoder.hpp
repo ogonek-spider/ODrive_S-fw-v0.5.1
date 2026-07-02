@@ -114,6 +114,7 @@ public:
     float calib_scan_response_ = 0.0f; // debug report from offset calib
     int32_t pos_abs_ = 0;
     float spi_error_rate_ = 0.0f;
+    uint32_t spi_consecutive_errors_ = 0; // consecutive missed SPI samples
     uint16_t mt6701_debug_word0_ = 0;
     uint16_t mt6701_debug_word1_ = 0;
     uint32_t mt6701_debug_raw24_ = 0;
