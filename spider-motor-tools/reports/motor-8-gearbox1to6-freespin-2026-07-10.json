@@ -1,0 +1,103 @@
+{
+  "motor_id": "8",
+  "serial_number": "3482345a3034",
+  "test": "gearbox 1:6 free-spin (no load)",
+  "vbus_v": 39.96818923950195,
+  "ratio": 6.0,
+  "runs": [
+    {
+      "cmd_turns_s": 2.0,
+      "mean_abs_iq_a": 1.8421639680862427,
+      "max_abs_iq_a": 2.495479106903076,
+      "actual_vel_turns_s": 2.156830072402954,
+      "output_rpm": 21.56830072402954,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 4.0,
+      "mean_abs_iq_a": 1.955088480313619,
+      "max_abs_iq_a": 2.720215082168579,
+      "actual_vel_turns_s": 4.058838367462158,
+      "output_rpm": 40.58838367462158,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 6.0,
+      "mean_abs_iq_a": 2.042864509423574,
+      "max_abs_iq_a": 2.6129446029663086,
+      "actual_vel_turns_s": 6.00764004389445,
+      "output_rpm": 60.0764004389445,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -6.0,
+      "mean_abs_iq_a": 1.7447146341204642,
+      "max_abs_iq_a": 2.7315986156463623,
+      "actual_vel_turns_s": -0.9195964398949097,
+      "output_rpm": -9.195964398949098,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": false
+    },
+    {
+      "cmd_turns_s": -4.0,
+      "mean_abs_iq_a": 1.9144955197970073,
+      "max_abs_iq_a": 2.4934632778167725,
+      "actual_vel_turns_s": -3.9621993700663247,
+      "output_rpm": -39.621993700663246,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -2.0,
+      "mean_abs_iq_a": 1.820133058230082,
+      "max_abs_iq_a": 2.8915066719055176,
+      "actual_vel_turns_s": -1.91523281733195,
+      "output_rpm": -19.1523281733195,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    }
+  ],
+  "fwd_mean_iq_a": 1.946705652607812,
+  "rev_mean_iq_a": 1.8264477373825179,
+  "dir_asymmetry_a": 0.12025791522529405,
+  "status": "FAIL",
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ]
+}

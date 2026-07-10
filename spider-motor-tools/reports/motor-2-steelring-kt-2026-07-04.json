@@ -1,0 +1,23 @@
+{
+  "motor": "2",
+  "serial": "367836893335",
+  "rotor": "steel-ring",
+  "encoder": "onboard AS5047P (mode 257)",
+  "firmware": "patched v0.5.1",
+  "R": 0.2336,
+  "L": 0.0006077,
+  "pp": 15,
+  "lambda_wb": 0.011967,
+  "kt": 0.2693,
+  "kv": 30.71,
+  "r2": 0.99819,
+  "method": "back-EMF fit, Vq from |V|=sqrt(Va^2+Vb^2) per-sample avg, Vd reactive corrected; lambda=slope(bemf vs omega_e) through origin; Kt=1.5*pp*lambda",
+  "runs": [
+    {"cmd": 2,  "vel": 1.996,  "iq": -0.774, "Vmag": 2.525,  "Vq": 2.523,  "bemf": 2.343,  "omega": 188.09, "reached": true},
+    {"cmd": 3,  "vel": 2.995,  "iq": -0.778, "Vmag": 3.701,  "Vq": 3.699,  "bemf": 3.517,  "omega": 282.32, "reached": true},
+    {"cmd": 4,  "vel": 4.000,  "iq": -0.817, "Vmag": 4.833,  "Vq": 4.829,  "bemf": 4.638,  "omega": 377.02, "reached": true},
+    {"cmd": 6,  "vel": 6.004,  "iq": -0.963, "Vmag": 7.122,  "Vq": 7.114,  "bemf": 6.889,  "omega": 565.90, "reached": true},
+    {"cmd": 8,  "vel": 8.000,  "iq": -0.923, "Vmag": 9.032,  "Vq": 9.022,  "bemf": 8.806,  "omega": 754.01, "reached": true},
+    {"cmd": 10, "vel": 10.003, "iq": -1.001, "Vmag": 11.524, "Vq": 11.510, "bemf": 11.276, "omega": 942.75, "reached": true}
+  ]
+}

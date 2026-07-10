@@ -244,7 +244,7 @@ def main():
             "motor_direction": m.config.direction,
             "encoder_mode": e.config.mode,
             "encoder_cpr": e.config.cpr,
-            "encoder_direction": e.config.direction,
+            "encoder_direction": getattr(e.config, "direction", None),
             "offset_float": e.config.offset_float,
         },
         "pre_errors": err_tuple(axis),

@@ -70,6 +70,14 @@ def parse_args():
     p.add_argument("--axis", type=int, default=0, choices=(0, 1))
     p.add_argument("--current", type=float, default=8.0,
                    help="Lockin holding current (A). Power ~= 1.5*I^2*R. Default 8.")
+    p.add_argument("--arm-current", type=float, default=None,
+                   help="Soft-start: current (A) to ARM lockin at, then ramp up to "
+                        "--current. Arming at the full current can inrush-brownout the "
+                        "USB and drop the board (esp. >=8A). Default min(current, 5).")
+    p.add_argument("--arm-ramp", type=float, default=4.0,
+                   help="Seconds to ramp lockin current from --arm-current up to "
+                        "--current after arming. Same electrical angle, so the rotor "
+                        "does NOT move. Default 4.")
     p.add_argument("--target-temp", type=float, default=55.0,
                    help="Stop once the MOTOR thermistor reaches this temp (C). "
                         "Default 55 (kept below the flashed trip). Set high (e.g. "
@@ -160,6 +168,11 @@ def main():
               f"{m.config.current_lim}.", flush=True)
         sys.exit(2)
 
+    # Soft-start current: arm gently here, then ramp up to args.current so the
+    # arm inrush cannot brown out the USB / drop the board at high current.
+    arm_current = (args.arm_current if args.arm_current is not None
+                   else min(args.current, 4.0))
+
     R = float(m.config.phase_resistance)
     est_watts = 1.5 * args.current * args.current * R
     fw = getattr(odrive, "__version__", "?")
@@ -174,6 +187,8 @@ def main():
         "vbus_v": float(dev.vbus_voltage),
         "params": {
             "current_a": args.current,
+            "arm_current_a": arm_current,
+            "arm_ramp_s": args.arm_ramp,
             "est_watts": round(est_watts, 1),
             "target_temp_c": args.target_temp,
             "max_minutes": args.max_minutes,
@@ -231,9 +246,12 @@ def main():
 
     def apply_lockin_config():
         # Stationary lockin: ramp current up, then hold at vel=0 with no finish
-        # condition so it dwells indefinitely as a heater.
-        lk.current = args.current
-        lk.ramp_time = 0.5
+        # condition so it dwells indefinitely as a heater. Arm at the gentle
+        # soft-start current; ramp_to_target() walks it up to args.current.
+        lk.current = arm_current
+        # Gentle arm ramp (1.5s, not 0.5s): a fast inrush at arm can EMI/brownout
+        # the USB and drop the board. 4A/1.5s arms cleanly on this hardware.
+        lk.ramp_time = 1.5
         lk.ramp_distance = 3.1415927
         lk.accel = 0.0
         lk.vel = 0.0
@@ -258,10 +276,30 @@ def main():
         time.sleep(0.5)
         return axis.current_state == AXIS_STATE_LOCKIN_SPIN
 
+    def ramp_to_target():
+        # After arming at arm_current, walk lk.current up to args.current in
+        # small steps so no single step spikes the bus. The electrical angle is
+        # unchanged, so the rotor does NOT move - only the current amplitude (and
+        # thus the I^2R heating) rises. Raises on a device-lost like any read.
+        delta = args.current - arm_current
+        if delta <= 1e-6:
+            return
+        nsteps = max(1, int(math.ceil(delta / 0.5)))
+        dt = max(args.arm_ramp, 0.0) / nsteps
+        print(f"    soft-start: ramp {arm_current:.1f}->{args.current:.1f}A over "
+              f"{args.arm_ramp:.0f}s ({nsteps} steps)", flush=True)
+        for k in range(1, nsteps + 1):
+            lk.current = arm_current + delta * k / nsteps
+            if args.watchdog > 0:
+                axis.watchdog_feed()
+            time.sleep(dt)
+        lk.current = args.current
+
     def reconnect_and_rearm():
         # Re-establish the USB link after a device drop and resume heating.
         # The board keeps its RAM config across these drops, but the watchdog
-        # will have idled the motor, so we must re-arm. Returns True on success.
+        # will have idled the motor, so we must re-arm + re-ramp. Returns True on
+        # success; swallows a re-drop during (re)arm so the driver loop can retry.
         nonlocal dev, axis, m, lk, mt, ft
         try:
             dev = odrive.find_any(serial_number=args.serial_number, timeout=25)
@@ -273,9 +311,18 @@ def main():
         lk = axis.config.general_lockin
         mt = axis.motor_thermistor
         ft = axis.fet_thermistor
-        apply_lockin_config()
-        enable_watchdog()
-        return arm_lockin()
+        try:
+            apply_lockin_config()
+            enable_watchdog()
+            if arm_lockin():
+                ramp_to_target()
+                return True
+            return False
+        except Exception as e:
+            if is_device_lost(e):
+                print("    reconnect: dropped again during re-arm/ramp", flush=True)
+                return False
+            raise
 
     stop_reason = "unknown"
     recoveries = 0
@@ -286,10 +333,35 @@ def main():
         apply_lockin_config()
         enable_watchdog()
 
-        if not arm_lockin():
-            stop_reason = f"lockin entry failed state={axis.current_state} errs={err_tuple(axis)}"
-            print("FAIL:", stop_reason, flush=True)
-            return
+        # Initial arm. The 12A lockin inrush can brown-out/EMI the USB link and
+        # drop the device mid-arm; the firmware watchdog then idles the motor.
+        # Treat that exactly like an in-loop drop: reconnect & re-arm, reusing
+        # the reconnect budget, so a flaky arm can't crash the whole run.
+        armed = False
+        while not armed:
+            try:
+                armed = arm_lockin()
+                if armed:
+                    ramp_to_target()
+            except Exception as e:
+                if not is_device_lost(e):
+                    raise
+                reconnects += 1
+                print(f"    device lost during arm (inrush) - watchdog idles the "
+                      f"motor; reconnecting (attempt {reconnects}/{args.reconnects})",
+                      flush=True)
+                if reconnects > args.reconnects:
+                    stop_reason = f"gave up arming after {reconnects} USB reconnects"
+                    print("FAIL:", stop_reason, flush=True)
+                    return
+                armed = reconnect_and_rearm()
+                if not armed:
+                    time.sleep(1.0)
+                continue
+            if not armed:
+                stop_reason = f"lockin entry failed state={axis.current_state} errs={err_tuple(axis)}"
+                print("FAIL:", stop_reason, flush=True)
+                return
 
         deadline = t0 + args.max_minutes * 60.0
         last_temp = t_start_motor

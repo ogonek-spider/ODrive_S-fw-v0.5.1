@@ -27,6 +27,28 @@ sys.path = [p for p in sys.path if p not in ("", ".", os.getcwd())]
 import odrive
 from odrive.enums import AXIS_STATE_IDLE
 
+try:
+    from odrive.libodrive import DeviceLostException
+except Exception:  # pragma: no cover - name varies across odrivetool versions
+    class DeviceLostException(Exception):
+        pass
+
+
+def is_device_lost(exc):
+    """True if the exception looks like a USB disconnect (name varies)."""
+    return isinstance(exc, DeviceLostException) or "disconnect" in str(exc).lower()
+
+
+def ntc_temp_from_adc(voltage, rfix, r0, beta, t0_c=25.0):
+    """Divider voltage (3.3V--rfix--pin--NTC--GND) to degrees C (beta model).
+    Returns None if the pin is railed (open/short)."""
+    if voltage <= 0.002 or voltage >= 3.298:
+        return None
+    rntc = rfix * voltage / (3.3 - voltage)
+    t0 = t0_c + 273.15
+    tk = 1.0 / (1.0 / t0 + (1.0 / beta) * math.log(rntc / r0))
+    return tk - 273.15
+
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
@@ -44,7 +66,24 @@ def parse_args():
     p.add_argument("--interval", type=float, default=3.0)
     p.add_argument("--json")
     p.add_argument("--jsonl")
+    # Optional extra thermistor read via raw ADC (e.g. the radiator ring sensor).
+    p.add_argument("--ring-gpio", type=int, default=None,
+                   help="GPIO number of an extra NTC (raw ADC read), e.g. 3. "
+                        "Logged as ring_c so you can watch the winding/rotor soak "
+                        "and the radiator decay together.")
+    p.add_argument("--ring-rfix", type=float, default=5000.0)
+    p.add_argument("--ring-r0", type=float, default=10000.0)
+    p.add_argument("--ring-beta", type=float, default=3950.0)
     return p.parse_args()
+
+
+def read_ring(dev, args):
+    """Median of 3 raw ADC reads of the ring NTC (PWM EMI glitches lone samples).
+    Returns None if no ring configured or the pin is railed."""
+    if args.ring_gpio is None:
+        return None
+    vs = sorted(float(dev.get_adc_voltage(args.ring_gpio)) for _ in range(3))
+    return ntc_temp_from_adc(vs[1], args.ring_rfix, args.ring_r0, args.ring_beta)
 
 
 def main():
@@ -93,7 +132,23 @@ def main():
         os.makedirs(os.path.dirname(os.path.abspath(jsonl_path)), exist_ok=True)
         jsonl_f = open(jsonl_path, "w", encoding="utf-8")
 
+    def reconnect():
+        # Re-establish the USB link after a device drop. The motor is idle the
+        # whole time (passive cool-down), so there is nothing to re-arm; just
+        # refresh the handles. Returns True on success.
+        nonlocal dev, axis, mt, ft
+        try:
+            dev = odrive.find_any(serial_number=args.serial_number, timeout=25)
+        except Exception as e:
+            print(f"    reconnect: find_any failed: {e}", flush=True)
+            return False
+        axis = getattr(dev, f"axis{args.axis}")
+        mt = axis.motor_thermistor
+        ft = axis.fet_thermistor
+        return True
+
     stop_reason = "unknown"
+    reconnects = 0
     t0 = time.monotonic()
     deadline = t0 + args.max_minutes * 60.0
     last_temp = t_start_motor
@@ -103,18 +158,43 @@ def main():
         while True:
             now = time.monotonic()
             elapsed = now - t0
-            motor_t = float(mt.temperature)
-            fet_t = float(ft.temperature)
+            # Read all sensors; on a USB drop (this board's link is flaky)
+            # reconnect and retry rather than aborting the whole cool-down.
+            try:
+                motor_t = float(mt.temperature)
+                fet_t = float(ft.temperature)
+                ring_t = read_ring(dev, args)
+            except Exception as e:
+                if not is_device_lost(e):
+                    raise
+                reconnects += 1
+                print(f"    device lost (USB drop) - reconnecting "
+                      f"(attempt {reconnects})", flush=True)
+                if reconnect():
+                    print("    reconnected", flush=True)
+                else:
+                    time.sleep(1.0)
+                last_t = time.monotonic()  # avoid a bogus rate over the gap
+                if now >= deadline:
+                    stop_reason = f"time cap {args.max_minutes:.0f} min"
+                    break
+                continue
             dt = max(now - last_t, 1e-6)
             rate = (motor_t - last_temp) / dt * 60.0  # C/min (negative while cooling)
             amb = args.ambient if args.ambient is not None else fet_t
             sample = {"t_s": round(elapsed, 1), "motor_c": round(motor_t, 2),
                       "fet_c": round(fet_t, 2), "rate_c_min": round(rate, 2)}
+            if args.ring_gpio is not None:
+                sample["ring_c"] = round(ring_t, 2) if ring_t is not None else None
             report["samples"].append(sample)
             if jsonl_f:
                 jsonl_f.write(json.dumps(sample) + "\n")
                 jsonl_f.flush()
-            print(f"  t={elapsed:6.0f}s  MOTOR={motor_t:5.1f}C  FET={fet_t:5.1f}C  "
+            ring_s = ""
+            if args.ring_gpio is not None:
+                ring_s = (f"  RING={ring_t:5.1f}C (m-r={motor_t - ring_t:+4.1f})"
+                          if ring_t is not None else "  RING=OPEN")
+            print(f"  t={elapsed:6.0f}s  MOTOR={motor_t:5.1f}C  FET={fet_t:5.1f}C{ring_s}  "
                   f"rate={rate:+5.2f}C/min  (motor-amb={motor_t - amb:+4.1f})", flush=True)
             last_temp, last_t = motor_t, now
 
@@ -131,8 +211,15 @@ def main():
                 break
             time.sleep(args.interval)
     finally:
-        report["motor_temp_end_c"] = float(mt.temperature)
-        report["fet_temp_end_c"] = float(ft.temperature)
+        # Final reads may hit a drop too; fall back to the last logged sample.
+        try:
+            report["motor_temp_end_c"] = float(mt.temperature)
+            report["fet_temp_end_c"] = float(ft.temperature)
+        except Exception:
+            last = report["samples"][-1] if report["samples"] else {}
+            report["motor_temp_end_c"] = last.get("motor_c", t_start_motor)
+            report["fet_temp_end_c"] = last.get("fet_c", t_start_fet)
+        report["reconnects"] = reconnects
         report["elapsed_s"] = round(time.monotonic() - t0, 1)
         report["stop_reason"] = stop_reason
         if jsonl_f:
