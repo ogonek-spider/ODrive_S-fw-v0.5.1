@@ -206,6 +206,27 @@ bool Encoder::run_direction_find() {
     return status;
 }
 
+// Maps a linear scan progress x in [0,1] to a fraction of the total scan
+// distance, using a triangular velocity profile: zero angular velocity at both
+// ends (x=0 and x=1), peak at the middle (x=0.5). Starting the voltage-vector
+// sweep from zero speed lets the rotor lock onto the rotating field and follow
+// it, instead of the field jumping instantly to full calib_scan_omega (which a
+// strong-cogging / high-inertia rotor cannot catch, so it pole-slips and the
+// scan reports far less than the expected encoder delta -> NO_RESPONSE /
+// CPR_POLEPAIRS_MISMATCH). The profile is symmetric about x=0.5, so the
+// time-weighted mean electrical angle stays 0 and the offset averaging below is
+// unchanged. Peak angular velocity is 2*calib_scan_omega, reached only once the
+// rotor is already spinning. This mirrors what makes lock-in reliable on these
+// steel-ring rotors.
+static inline float calib_scan_progress(float x) {
+    if (x <= 0.0f) return 0.0f;
+    if (x >= 1.0f) return 1.0f;
+    if (x < 0.5f)
+        return 2.0f * x * x;
+    float y = 1.0f - x;
+    return 1.0f - 2.0f * y * y;
+}
+
 // @brief Turns the motor in one direction for a bit and then in the other
 // direction in order to find the offset between the electrical phase 0
 // and the encoder state 0.
@@ -249,7 +270,8 @@ bool Encoder::run_offset_calibration() {
     // scan forward
     i = 0;
     axis_->run_control_loop([&]() {
-        float phase = wrap_pm_pi(config_.calib_scan_distance * (float)i / (float)num_steps - config_.calib_scan_distance / 2.0f);
+        float frac = calib_scan_progress((float)i / (float)num_steps);
+        float phase = wrap_pm_pi(config_.calib_scan_distance * frac - config_.calib_scan_distance / 2.0f);
         float v_alpha = voltage_magnitude * our_arm_cos_f32(phase);
         float v_beta = voltage_magnitude * our_arm_sin_f32(phase);
         if (!axis_->motor_.enqueue_voltage_timings(v_alpha, v_beta))
@@ -289,7 +311,8 @@ bool Encoder::run_offset_calibration() {
     // scan backwards
     i = 0;
     axis_->run_control_loop([&]() {
-        float phase = wrap_pm_pi(-config_.calib_scan_distance * (float)i / (float)num_steps + config_.calib_scan_distance / 2.0f);
+        float frac = calib_scan_progress((float)i / (float)num_steps);
+        float phase = wrap_pm_pi(-config_.calib_scan_distance * frac + config_.calib_scan_distance / 2.0f);
         float v_alpha = voltage_magnitude * our_arm_cos_f32(phase);
         float v_beta = voltage_magnitude * our_arm_sin_f32(phase);
         if (!axis_->motor_.enqueue_voltage_timings(v_alpha, v_beta))
