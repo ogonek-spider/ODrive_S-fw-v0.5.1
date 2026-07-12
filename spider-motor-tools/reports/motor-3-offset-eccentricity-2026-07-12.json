@@ -1,0 +1,157 @@
+{
+  "serial": "367c365e3335",
+  "motor_id": "3",
+  "cpr": 16384,
+  "pole_pairs": 15,
+  "saved_offset": 8302,
+  "records": [
+    {
+      "tag": "map00",
+      "start_count": 42,
+      "start_mech": 0.0025634765625,
+      "offset_float": 1.15806245803833,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "map01",
+      "start_count": 2194,
+      "start_mech": 0.1339111328125,
+      "offset_float": 1.1017500162124634,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "map02",
+      "start_count": 4485,
+      "start_mech": 0.27374267578125,
+      "offset_float": 1.4016249179840088,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "map03",
+      "start_count": 6652,
+      "start_mech": 0.406005859375,
+      "offset_float": 0.802609384059906,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "map04",
+      "start_count": 8130,
+      "start_mech": 0.4962158203125,
+      "offset_float": 0.564703106880188,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "map05",
+      "start_count": 10114,
+      "start_mech": 0.6173095703125,
+      "offset_float": 0.8853750228881836,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "map06",
+      "start_count": 12137,
+      "start_mech": 0.74078369140625,
+      "offset_float": 0.6511406302452087,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "map07",
+      "start_count": 14301,
+      "start_mech": 0.87286376953125,
+      "offset_float": 0.6511406302452087,
+      "ok": true,
+      "errs": [
+        256,
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "tag": "rep00",
+      "start_count": 4231,
+      "start_mech": 0.25823974609375,
+      "offset_float": 0.7133593559265137,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "rep01",
+      "start_count": 3970,
+      "start_mech": 0.2423095703125,
+      "offset_float": 0.972906231880188,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "tag": "rep02",
+      "start_count": 3976,
+      "start_mech": 0.24267578125,
+      "offset_float": 0.9596562385559082,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "mean": 0.9211187362670898,
+  "sd": 0.2412943387986598,
+  "peak_peak": 0.8369218111038208,
+  "ecc_amplitude": 0.2942201893563337,
+  "residual_rms": 0.16724565447217288
+}

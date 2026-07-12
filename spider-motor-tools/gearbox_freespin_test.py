@@ -8,8 +8,11 @@ continues if the native link drops mid-run (known bench flakiness).
 """
 import argparse
 import json
+import os
 import statistics
 import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 import odrive
 from odrive.enums import (
@@ -60,10 +63,10 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--speeds", type=float, nargs="+", default=[2.0, 4.0, 6.0],
                    help="Motor turns/s magnitudes to sweep in each direction.")
-    p.add_argument("--ratio", type=float, default=6.0, help="Gearbox ratio (for output-turn math).")
-    p.add_argument("--dwell", type=float, default=1.5, help="Seconds to hold each speed.")
-    p.add_argument("--ramp", type=float, default=4.0, help="vel_ramp_rate (t/s^2).")
-    p.add_argument("--out", default="reports/motor-8-gearbox1to6-freespin-2026-07-10.json")
+    p.add_argument("--ratio", type=float, default=36.0, help="Gearbox ratio (for output-turn math).")
+    p.add_argument("--dwell", type=float, default=2.0, help="Seconds to hold each speed.")
+    p.add_argument("--ramp", type=float, default=8.0, help="vel_ramp_rate (t/s^2).")
+    p.add_argument("--out", default="reports/motor-8-gearbox1to36-freespin-2026-07-10.json")
     args = p.parse_args()
 
     print("connecting...", flush=True)
@@ -77,7 +80,7 @@ def main():
     report = {
         "motor_id": "8",
         "serial_number": format(odrv.serial_number, "x"),
-        "test": "gearbox 1:6 free-spin (no load)",
+        "test": f"gearbox 1:{args.ratio:g} free-spin (no load)",
         "vbus_v": odrv.vbus_voltage,
         "ratio": args.ratio,
         "runs": [],
@@ -95,6 +98,12 @@ def main():
     c.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
     c.config.input_mode = INPUT_MODE_VEL_RAMP
     c.config.vel_ramp_rate = args.ramp
+    # Raise the soft vel_limit above the sweep and disable the overspeed trip so
+    # the motor is free to run right up to its voltage wall (this is a no-load
+    # ceiling-finding run; config changes here are NOT saved to flash).
+    top = max(abs(s) for s in args.speeds)
+    c.config.vel_limit = top * 1.3
+    c.config.enable_overspeed_error = False
     c.input_vel = 0.0
 
     a.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
@@ -152,7 +161,9 @@ def main():
     report["status"] = status
     report["post_errors"] = err_tuple(odrv)
 
-    with open(args.out, "w") as f:
+    out_path = args.out if os.path.isabs(args.out) else os.path.join(HERE, args.out)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w") as f:
         json.dump(report, f, indent=2)
 
     print("\n=== SUMMARY ===", flush=True)
@@ -161,7 +172,7 @@ def main():
               f"rev mean|Iq| {report['rev_mean_iq_a']:.2f}A  "
               f"asymmetry {report['dir_asymmetry_a']:.2f}A", flush=True)
     print(f"  status: {status}   post-errors: {report['post_errors']}", flush=True)
-    print(f"  saved -> {args.out}", flush=True)
+    print(f"  saved -> {out_path}", flush=True)
 
 
 if __name__ == "__main__":

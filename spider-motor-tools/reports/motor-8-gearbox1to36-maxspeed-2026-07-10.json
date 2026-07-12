@@ -1,0 +1,215 @@
+{
+  "motor_id": "8",
+  "serial_number": "3482345a3034",
+  "test": "gearbox 1:36 free-spin (no load)",
+  "vbus_v": 39.952880859375,
+  "ratio": 36.0,
+  "runs": [
+    {
+      "cmd_turns_s": 8.0,
+      "mean_abs_iq_a": 2.0426327427228292,
+      "max_abs_iq_a": 2.6377220153808594,
+      "actual_vel_turns_s": 7.977550188700358,
+      "output_rpm": 13.295916981167265,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 10.0,
+      "mean_abs_iq_a": 2.02623104651769,
+      "max_abs_iq_a": 2.848971128463745,
+      "actual_vel_turns_s": 10.006206194559732,
+      "output_rpm": 16.67701032426622,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 12.0,
+      "mean_abs_iq_a": 1.9360959768295287,
+      "max_abs_iq_a": 2.6945159435272217,
+      "actual_vel_turns_s": 12.031047503153482,
+      "output_rpm": 20.051745838589138,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 14.0,
+      "mean_abs_iq_a": 1.810424623886744,
+      "max_abs_iq_a": 3.1163766384124756,
+      "actual_vel_turns_s": 14.034272193908691,
+      "output_rpm": 23.390453656514484,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 16.0,
+      "mean_abs_iq_a": 1.994307945171992,
+      "max_abs_iq_a": 3.412559747695923,
+      "actual_vel_turns_s": 16.005200068155926,
+      "output_rpm": 26.675333446926544,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 18.0,
+      "mean_abs_iq_a": 2.2955444852511087,
+      "max_abs_iq_a": 3.6852710247039795,
+      "actual_vel_turns_s": 15.796154657999674,
+      "output_rpm": 26.32692442999946,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": 20.0,
+      "mean_abs_iq_a": 2.3774704446395236,
+      "max_abs_iq_a": 4.012789726257324,
+      "actual_vel_turns_s": 15.449271519978842,
+      "output_rpm": 25.7487858666314,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": false
+    },
+    {
+      "cmd_turns_s": -20.0,
+      "mean_abs_iq_a": 2.152817992369334,
+      "max_abs_iq_a": 4.404384613037109,
+      "actual_vel_turns_s": -16.697949091593426,
+      "output_rpm": -27.82991515265571,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -18.0,
+      "mean_abs_iq_a": 2.0998385075479744,
+      "max_abs_iq_a": 3.774916172027588,
+      "actual_vel_turns_s": -16.516115188598633,
+      "output_rpm": -27.52685864766439,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -16.0,
+      "mean_abs_iq_a": 1.997546993692716,
+      "max_abs_iq_a": 3.9621214866638184,
+      "actual_vel_turns_s": -16.793062210083008,
+      "output_rpm": -27.988437016805012,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -14.0,
+      "mean_abs_iq_a": 1.7082827687263489,
+      "max_abs_iq_a": 3.0764806270599365,
+      "actual_vel_turns_s": -14.021557490030924,
+      "output_rpm": -23.369262483384873,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -12.0,
+      "mean_abs_iq_a": 1.7497753063837687,
+      "max_abs_iq_a": 2.53122878074646,
+      "actual_vel_turns_s": -11.987306594848633,
+      "output_rpm": -19.978844324747723,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -10.0,
+      "mean_abs_iq_a": 1.8013373931248984,
+      "max_abs_iq_a": 2.5929698944091797,
+      "actual_vel_turns_s": -9.981793085734049,
+      "output_rpm": -16.636321809556748,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    },
+    {
+      "cmd_turns_s": -8.0,
+      "mean_abs_iq_a": 1.615225076675415,
+      "max_abs_iq_a": 2.235118865966797,
+      "actual_vel_turns_s": -8.025362014770508,
+      "output_rpm": -13.375603357950848,
+      "errors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reached": true
+    }
+  ],
+  "fwd_mean_iq_a": 2.0689581807170594,
+  "rev_mean_iq_a": 1.8749748626457792,
+  "dir_asymmetry_a": 0.19398331807128022,
+  "status": "FAIL",
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ]
+}
