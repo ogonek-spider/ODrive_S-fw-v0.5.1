@@ -26,7 +26,7 @@ SERIAL = "3482345a3034"
 SPEED_REACH_FRAC = 0.80
 
 
-def connect(serial=SERIAL, timeout=15, attempts=8):
+def connect(serial=None, timeout=15, attempts=8):
     # NB: the modern find_any serial filter is case-sensitive and the board
     # reports its serial uppercase, so filter ourselves after a bare find
     # (single board on this bench) rather than passing serial_number=.
@@ -66,11 +66,18 @@ def main():
     p.add_argument("--ratio", type=float, default=36.0, help="Gearbox ratio (for output-turn math).")
     p.add_argument("--dwell", type=float, default=2.0, help="Seconds to hold each speed.")
     p.add_argument("--ramp", type=float, default=8.0, help="vel_ramp_rate (t/s^2).")
-    p.add_argument("--out", default="reports/motor-8-gearbox1to36-freespin-2026-07-10.json")
+    p.add_argument("--serial", default=None,
+                   help="Expected board serial (single board on bench if omitted).")
+    p.add_argument("--motor-id", default="8", help="Motor id label for the report.")
+    p.add_argument("--out", default=None,
+                   help="Report path (default reports/motor-<id>-gearbox1to<ratio>-freespin.json).")
     args = p.parse_args()
 
+    if args.out is None:
+        args.out = f"reports/motor-{args.motor_id}-gearbox1to{args.ratio:g}-freespin.json"
+
     print("connecting...", flush=True)
-    odrv = connect()
+    odrv = connect(serial=args.serial)
     print("serial:", format(odrv.serial_number, "x"), "vbus:", round(odrv.vbus_voltage, 2), flush=True)
     a = odrv.axis0
     c = a.controller
@@ -78,7 +85,7 @@ def main():
     e = a.encoder
 
     report = {
-        "motor_id": "8",
+        "motor_id": args.motor_id,
         "serial_number": format(odrv.serial_number, "x"),
         "test": f"gearbox 1:{args.ratio:g} free-spin (no load)",
         "vbus_v": odrv.vbus_voltage,
