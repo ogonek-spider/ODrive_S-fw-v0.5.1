@@ -202,20 +202,39 @@ void CANSimple::get_encoder_estimates_callback(Axis* axis, can_Message_t& msg) {
         txmsg.isExt = axis->config_.can_node_id_extended;
         txmsg.len = 8;
 
-        // Undefined behaviour!
-        // uint32_t floatBytes = *(reinterpret_cast<int32_t*>(&(axis->encoder_.pos_estimate_)));
+        // Local patch: report the SAME estimate sources the controller closes
+        // the loop on, not blindly this axis's own encoder:
+        //   position <- load encoder (controller.config.load_encoder_axis), so
+        //     geared joints publish true OUTPUT-shaft angle over CAN (the MT6701
+        //     mounted after the gearbox on the other axis) instead of the
+        //     motor-shaft AS5047P.
+        //   velocity <- vel encoder (controller.config.vel_encoder_axis), the
+        //     motor-shaft encoder used for commutation/velocity.
+        // This mirrors the axis-selection + fallback in
+        // Axis::run_closed_loop_control_loop() (vel falls back to load; load
+        // falls back to this axis) so it stays correct even while the axis is
+        // IDLE -- the controller's cached *_src_ pointers are only bound on
+        // closed-loop entry, but the host must read joint angle any time.
+        // Non-split joints keep load_encoder_axis == their own axis, so they
+        // report their own encoder exactly as before (backward compatible).
+        Encoder& pos_enc = (axis->controller_.config_.load_encoder_axis < AXIS_COUNT)
+                ? axes[axis->controller_.config_.load_encoder_axis]->encoder_
+                : axis->encoder_;
+        Encoder& vel_enc = (axis->controller_.config_.vel_encoder_axis < AXIS_COUNT)
+                ? axes[axis->controller_.config_.vel_encoder_axis]->encoder_
+                : pos_enc;
 
         uint32_t floatBytes;
-        static_assert(sizeof axis->encoder_.pos_estimate_ == sizeof floatBytes);
-        std::memcpy(&floatBytes, &axis->encoder_.pos_estimate_, sizeof floatBytes);
+        static_assert(sizeof pos_enc.pos_estimate_ == sizeof floatBytes);
+        std::memcpy(&floatBytes, &pos_enc.pos_estimate_, sizeof floatBytes);
 
         txmsg.buf[0] = floatBytes;
         txmsg.buf[1] = floatBytes >> 8;
         txmsg.buf[2] = floatBytes >> 16;
         txmsg.buf[3] = floatBytes >> 24;
 
-        static_assert(sizeof floatBytes == sizeof axis->encoder_.vel_estimate_);
-        std::memcpy(&floatBytes, &axis->encoder_.vel_estimate_, sizeof floatBytes);
+        static_assert(sizeof floatBytes == sizeof vel_enc.vel_estimate_);
+        std::memcpy(&floatBytes, &vel_enc.vel_estimate_, sizeof floatBytes);
         txmsg.buf[4] = floatBytes;
         txmsg.buf[5] = floatBytes >> 8;
         txmsg.buf[6] = floatBytes >> 16;

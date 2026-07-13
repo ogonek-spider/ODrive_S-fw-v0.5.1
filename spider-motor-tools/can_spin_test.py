@@ -103,6 +103,15 @@ class Bridge:
     def _parse(self, raw):
         try:
             s = raw.decode(errors="ignore").strip()
+            # The bridge emits an slcan transmit-ack ('z'/'Z', or a bare '\r' as
+            # a bell) right after we send a frame, and it can arrive glued to the
+            # front of the next received frame with no separator, e.g.
+            # "zt1A9800B2943E...". Strip any leading ack chars so the real frame
+            # (starting at 't'/'r') is parsed instead of being rejected.
+            i = 0
+            while i < len(s) and s[i] not in "tr":
+                i += 1
+            s = s[i:]
             if len(s) < 5 or s[0] not in "tr":
                 return None
             arb = int(s[1:4], 16)

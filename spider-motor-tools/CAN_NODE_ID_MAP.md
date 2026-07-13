@@ -22,7 +22,7 @@ and `Serial` are filled in as boards get mounted and assigned.
 |:---:|:-----:|:------------|:-------------:|:-------:|:-------------|
 | 1   | 1     | top         | **11**        |         |              |
 | 1   | 2     | middle      | **12**        |         |              |
-| 1   | 3     | bottom/knee | **13**        | 2       | 367836893335 |
+| 1   | 3     | bottom/knee | **13**        | 8       | 3482345a3034 |
 | 2   | 1     | top         | **21**        |         |              |
 | 2   | 2     | middle      | **22**        |         |              |
 | 2   | 3     | bottom/knee | **23**        | 3       | 367c365e3335 |
@@ -47,9 +47,11 @@ odrv0.axis0.config.can_node_id_extended = False
 odrv0.save_configuration()
 ```
 
-Current bench board **serial `367836893335` (physical motor #2) → leg 1, bottom/knee → `can_node_id = 13`** (applied + saved).
+Bench board **serial `3482345a3034` (physical motor #8) → leg 1, bottom/knee → `can_node_id = 13`** (applied + saved 2026-07-13). This **replaces** physical motor #2 (`367836893335`) in this slot — motor #2's new electric box has the unresolved thermistor-short + commutation faults documented below, so motor #8 (which is healthy and geared) takes leg 1 knee. Motor #8 was previously node 23 (bench testing); that slot is now motor #3.
 
-Bench board **serial `367c365e3335` (physical motor #3, bare motor) → leg 2, bottom/knee → `can_node_id = 23`** (applied + saved 2026-07-12). This **supersedes** motor #8 (`3482345a3034`) at node 23 — motor #8 was bench testing only; reassign it a new slot before mounting.
+Bench board **serial `367c365e3335` (physical motor #3, bare motor) → leg 2, bottom/knee → `can_node_id = 23`** (applied + saved 2026-07-12).
+
+Displaced: physical motor #2 (`367836893335`) no longer holds a slot — reassign it once its box faults are fixed.
 
 ## Known problems to revisit
 
