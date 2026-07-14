@@ -486,6 +486,31 @@ Faults and `Ctrl+C` skip the final movement and enter idle immediately.
 Override the normal release pose with `--down-degrees`, and override its speed
 with `--release-velocity-limit`.
 
+## Offline LLM Setup (forest / no internet)
+
+For field work with no internet, a local LLM stands in as a weaker offline
+alternative to Claude. Full details in `offline-llm/OFFLINE_RUNBOOK.md`.
+
+- Runtime: `ollama` (Homebrew, starts at login) on Apple M5 / 16 GB. All models
+  run fully offline once pulled.
+- Models: `qwen2.5-coder:7b` (plain coding, safe alongside Docker builds),
+  `motor` (the 7B wrapped with this project's board/patch facts — **use for
+  motor/firmware questions**; built from `offline-llm/Modelfile.motor`),
+  `qwen2.5-coder:14b` (smarter, ~9 GB — **only when the board is idle**, or it
+  swaps on 16 GB).
+- After changing project facts, refresh the `motor` model:
+  `ollama create motor -f offline-llm/Modelfile.motor`. Keep its system prompt in
+  sync with the hard-won gotchas here and in the memory notes (CAN bridge
+  back-to-back drop, split-feedback control, arm-from-UNDEFINED, per-motor Kt).
+- Offline references are all in-repo and **version-matched** to this v0.5.1 fork —
+  do NOT pull from docs.odriverobotics.com (serves newer, mismatched docs):
+  `docs/` (CAN, control, encoders, commands, troubleshooting), `tools/odrive/enums.py`
+  (all error/state/mode enums), `Firmware/odrive-interface.yaml` (full API incl.
+  local additions).
+- The local model is a draft assistant only — verify its output against the real
+  board. It is weak at subtle control tuning, the MT6701 SSI patch, and
+  root-causing USB-drop vs magnet-slip.
+
 ## Safety
 
 - Do not overwrite the MT6701 patch when regenerating or syncing firmware.
