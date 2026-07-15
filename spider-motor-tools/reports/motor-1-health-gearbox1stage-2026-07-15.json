@@ -1,0 +1,193 @@
+{
+  "motor_id": "1",
+  "serial_number": "367b36793335",
+  "fw_version": "0.6.11.post0",
+  "axis": 0,
+  "vbus_v": 40.09064865112305,
+  "fet_temp_start_c": 29.870235443115234,
+  "stored": {
+    "phase_resistance_ohm": 0.24022333323955536,
+    "phase_inductance_H": 0.0005946222227066755,
+    "pole_pairs": 15,
+    "torque_constant": 0.2529999911785126,
+    "motor_direction": 1,
+    "encoder_mode": 257,
+    "encoder_cpr": 16384,
+    "encoder_direction": 1,
+    "offset_float": 0.5232187509536743
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "motor_calibration": {
+    "status": "PASS",
+    "R_spread_ohm": 0.0033533573150634766,
+    "L_spread_H": 5.437934305518866e-06,
+    "R_mean_ohm": 0.2347366400063038,
+    "L_mean_H": 0.000593868491705507,
+    "valid_runs": 4,
+    "runs": [
+      {
+        "run": 1,
+        "R_ohm": 0.2330736368894577,
+        "L_H": 0.0005918266251683235,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 2,
+        "R_ohm": 0.23397977650165558,
+        "L_H": 0.0005912447813898325,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 3,
+        "R_ohm": 0.2354661524295807,
+        "L_H": 0.0005957198445685208,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 4,
+        "R_ohm": 0.23642699420452118,
+        "L_H": 0.0005966827156953514,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      }
+    ]
+  },
+  "encoder_offset": {
+    "status": "FAIL",
+    "offset_spread_rad": 0.48503124713897705,
+    "offset_mean_rad": 1.0340468883514404,
+    "offset_min": 0.8606250286102295,
+    "offset_max": 1.3456562757492065,
+    "valid_runs": 4,
+    "runs": [
+      {
+        "run": 1,
+        "offset_float": 0.5232187509536743,
+        "motor_direction": 1,
+        "errors": [
+          256,
+          0,
+          2,
+          0
+        ],
+        "ran": true,
+        "valid": false
+      },
+      {
+        "run": 2,
+        "offset_float": 1.3456562757492065,
+        "motor_direction": 1,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 3,
+        "offset_float": 0.9410156011581421,
+        "motor_direction": 1,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 4,
+        "offset_float": 0.8606250286102295,
+        "motor_direction": 1,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 5,
+        "offset_float": 0.9888906478881836,
+        "motor_direction": 1,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      }
+    ]
+  },
+  "free_spin": {
+    "status": "FAIL",
+    "runs": [
+      {
+        "cmd_turns_s": 5.0,
+        "mean_abs_iq_a": 1.7449676847457887,
+        "max_abs_iq_a": 3.021770477294922,
+        "actual_vel_turns_s": 3.944092273712158,
+        "reached": false
+      },
+      {
+        "cmd_turns_s": 10.0,
+        "mean_abs_iq_a": 2.2894151830673217,
+        "max_abs_iq_a": 3.779045343399048,
+        "actual_vel_turns_s": 9.388733863830566,
+        "reached": true
+      }
+    ]
+  },
+  "fet_temp_end_c": 34.337772369384766,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "overall": "FAIL"
+}

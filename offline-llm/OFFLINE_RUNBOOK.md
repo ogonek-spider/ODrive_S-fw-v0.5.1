@@ -40,6 +40,34 @@ ollama run qwen2.5-coder:7b
 ollama run motor "how do I safely arm axis0 into closed-loop from UNDEFINED?"
 ```
 
+## Let the local model actually reach the board (agent bridge)
+
+Plain `ollama run motor` is text-only — it can advise but cannot touch the ODrive.
+`offline-llm/motor_agent.py` wraps it in a tiny agent loop: the model is given
+tools, and the script executes them by shelling out to the trusted
+`spider-motor-tools/` CAN scripts, then feeds the result back to the model.
+
+```bash
+# READ-ONLY (default): can inspect the live bus, cannot move anything
+.venv/bin/python offline-llm/motor_agent.py "are both knee joints healthy?"
+
+# allow guarded moves — still asks y/N before each physical move
+.venv/bin/python offline-llm/motor_agent.py --allow-move "move leg1 knee to 30 deg"
+
+# interactive
+.venv/bin/python offline-llm/motor_agent.py
+```
+
+Safety: read-only by default (`can_probe` → `can_check.py`); motion (`can_goto`
+→ `can_goto.py`) is refused without `--allow-move` and prompts y/N on every move.
+Needs the ESP32 slcan **bridge** plugged in (a separate usbmodem device from the
+ODrive's own native-USB port).
+
+Gotcha: ollama does NOT populate native `tool_calls` for qwen2.5-coder:7b — it
+writes the call as plain text. So the agent uses a strict JSON-in-text protocol
+(`{"tool": ...}` / `{"answer": ...}`) with tolerant parsing, not the native
+tool API. Keep that if you swap models.
+
 ## Rebuild the motor model (after editing the Modelfile)
 ```bash
 cd /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1

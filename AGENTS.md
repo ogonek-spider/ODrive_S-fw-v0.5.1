@@ -222,6 +222,33 @@ Holding current vs joint angle: ~2.8 A near horizontal (max gravity moment),
 ~0.8 A near vertical. Before entering closed loop in position mode, set
 `controller.input_pos = axis1.encoder.pos_estimate` to avoid a jump.
 
+## Firmware Versioning
+
+Bump the firmware version **every time firmware source changes** so the version
+reported by a flashed board tells you which build is on it.
+
+- **Source of truth:** `tools/odrive/version.txt` (currently `fw-v0.5.2-mt6701`).
+  There are no git tags, so `git describe` returns a bare commit hash that fails
+  the `vMAJOR.MINOR.REVISION` regex; `version.py` then falls back to
+  `version.txt`. The trailing `-mt6701` only sets the "unreleased" flag — **only
+  the numeric `MAJOR.MINOR.REVISION` is reported on the board**, so a bump must
+  change a number. Convention for this fork: **increment the revision**
+  (`0.5.1 → 0.5.2 → 0.5.3 …`), keeping the `-mt6701` suffix.
+- **To bump:** edit the numeric part of `tools/odrive/version.txt`, then
+  regenerate the C file so the working tree matches:
+  ```bash
+  cd Firmware && python3 -B ../tools/odrive/version.py --output autogen/version.c
+  ```
+  The Docker build also deletes and regenerates `autogen/version.c` (Dockerfile
+  line 22), so `version.txt` reliably drives the build. `autogen/version.c` is
+  not git-tracked.
+- **Check the active version on a connected board:**
+  ```python
+  print(odrv0.fw_version_major, odrv0.fw_version_minor, odrv0.fw_version_revision)
+  # 0 5 2
+  ```
+  Or over ASCII: the `i` command responds `Firmware version: 0.5.2`.
+
 ## Build
 
 Preferred build path is Docker from the repository root. On Apple Silicon, the Docker build must run as `linux/amd64` because the old Ubuntu bionic `tup` PPA package is not available for arm64. The local `dockerbuild.sh` and `Dockerfile` have been patched for that.
