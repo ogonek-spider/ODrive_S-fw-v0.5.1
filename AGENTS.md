@@ -187,6 +187,51 @@ configuration version to `0x0003`. The first flash of this firmware invalidates
 the previous saved configuration. Back up the current configuration to JSON
 before flashing and restore it afterward as described in Flashing Notes.
 
+### Encoder Harmonic (Eccentricity) Compensation
+
+Local patch adding per-encoder 1st/2nd-harmonic error correction for the
+magnetic absolute encoders (ported from ODrive v0.6). The dominant magnetic
+encoder error repeats once (magnet eccentricity) and twice (tilt/nonlinearity)
+per mechanical revolution. `Encoder::update()` subtracts the fitted error, in
+counts, from both the position estimate (PLL delta) and the electrical phase.
+
+- Config fields (per encoder, in `Encoder::Config`):
+  `enable_harmonic_compensation` (default **false**), `harmonic_cos_1`,
+  `harmonic_sin_1`, `harmonic_cos_2`, `harmonic_sin_2` (counts). Readonly live
+  value `encoder.harmonic_error`.
+- Error model, matching firmware and tool:
+  `err(t) = c1·cos t + s1·sin t + c2·cos 2t + s2·sin 2t`, `t = 2π·count_in_cpr/cpr`.
+- **Disabled path is bit-identical to stock** (the correction is `0.0f`).
+- **SAFETY CLAMP:** the applied `harmonic_err_counts` is hard-clamped to
+  ±`cpr/64` (~5.6° mech at cpr 16384), NaN-guarded, and gated on `cpr > 0`, so a
+  bad/garbage fit saved to NVM can never corrupt commutation at boot.
+
+Calibrate offline with `spider-motor-tools/harmonic_calibration.py`: it spins at
+a constant velocity and least-squares-fits the deviation from a straight line.
+**Calibrate fast (≥12 motor t/s)** — at low speed cogging velocity ripple swamps
+the fixed encoder error and the fit is not repeatable. The tool samples only
+`count_in_cpr` in the hot loop (error/state polled at ~30 Hz, not per-sample) to
+avoid starving the control loop, and its `--save` is **gated**: it refuses to
+flash unless the fit covers ≥`--min-revs` revs/pass with pass-to-pass spread
+under `--max-spread` (`--force` overrides). Geared joint MT6701 needs ~34 motor
+turns per encoder rev and the joint free to turn full output revolutions
+(`--ratio 34`).
+
+Touched files: `Firmware/MotorControl/encoder.cpp`, `encoder.hpp`,
+`Firmware/odrive-interface.yaml`.
+
+**NVM CONFIG VERSION — the brick lesson.** This patch adds fields to
+`Encoder::Config`, so it **must** bump `config_version` in
+`Firmware/MotorControl/nvm_config.hpp` (bumped `0x0003 → 0x0004` here). The
+first port of this feature *forgot* the bump; the CRC-over-length in
+`nvm_config.hpp` still invalidated the mismatched config and fell back to
+defaults, but the board was left running a partial/default config that faulted
+on the next reboot ("worked fine, bricked after restart"). Always: bump
+`config_version` when any config struct changes, back up config JSON before
+flashing, restore + re-verify + re-save after, and **power-cycle and confirm a
+clean boot + low-current arm before enabling compensation** (it defaults off in
+NVM — enable it dead-last).
+
 For geared joints where MT6701 is mounted after the gearbox and Hall sensors are on the motor side, controller feedback is patched to support split position/velocity sources:
 
 ```python
