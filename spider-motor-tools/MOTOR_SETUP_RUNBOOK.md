@@ -115,7 +115,49 @@ Reconnect, verify it boots straight into closed loop, do a short spin (e.g.
 6 t/s), confirm zero errors. Optional deeper tests: `thermal_rise_test.py`,
 `heat_hold_test.py`, `anticogging_calibration.py`.
 
-## Step 8 — Record
+## Step 8 — Optional: encoder harmonic (eccentricity) compensation
+
+Only after Step 6 (motor must be pinned/commutating). Measures the encoder's
+1st/2nd per-revolution error and, if the fit is good, subtracts it from the
+position estimate + electrical phase. Defaults **off** in NVM; enable dead-last.
+See AGENTS.md "Encoder Harmonic (Eccentricity) Compensation" for the firmware
+side (config-gated, applied correction clamped to cpr/64).
+
+**Always dry-run first and read the fit — do not blind-`--save`:**
+
+```bash
+# axis0 on-shaft AS5047P (ratio 1). Spins the motor at 12 t/s -> re-confirm the
+# SAFETY GATE (Step 2) still holds before running.
+PYTHONUNBUFFERED=1 .venv/bin/python spider-motor-tools/harmonic_calibration.py \
+  --motor-id <N> --drive-axis 0
+```
+
+Judge the report, not just the trust gate (the gate is a floor):
+- **Save-worthy:** 1st/2nd amplitudes repeatable across passes (spread well under
+  25%), and the correction visibly cuts **error pk-pk**, not just RMS.
+- **Leave OFF (common on a bare bench motor):** if error **pk-pk barely moves**,
+  the encoder error is mostly **non-harmonic** and/or the fit is contaminated by
+  cogging velocity ripple (no gearbox/load inertia to filter it at 12 t/s).
+  Harmonic comp then buys almost nothing.
+
+If save-worthy, apply + flash, then **power-cycle and re-verify a clean boot +
+low-current arm** before trusting it:
+
+```bash
+.venv/bin/python spider-motor-tools/harmonic_calibration.py \
+  --motor-id <N> --drive-axis 0 --save   # gated; --force to override the gate
+```
+
+Geared joint MT6701 (axis1, after the ~34:1 gearbox): use
+`--encoder-axis 1 --ratio 34` and the joint must be free to turn full **output**
+revolutions, or the fit is poor.
+
+Reference (motor #6, 2026-07-17, board 367f36793335): dry-run clean but 1st/2nd
+only 0.19°/0.26°, RMS 0.54°→0.48°, **pk-pk 5.1°→5.0° (unchanged)** → non-harmonic
+error dominates → **left OFF**. Marginal benefit is the expected outcome for the
+on-shaft AS5047P on a no-load bench; don't force it.
+
+## Step 9 — Record
 
 - Health + Kt JSON already saved under `spider-motor-tools/reports/`.
 - Add a one-line memory entry (`motor<N>-setup-<DATE>`): board serial, R/L,

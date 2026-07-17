@@ -192,8 +192,13 @@ def main():
     duration = motor_turns / max(abs(args.speed), 1e-3)
     check_period = 1.0 / max(args.check_hz, 1.0)
 
-    fw = getattr(odrive, "__version__", "?")
-    print(f"serial={format(dev.serial_number, 'x')} fw={fw} "
+    # Report the BOARD firmware version, not the host odrivetool library
+    # (odrive.__version__), so the JSON records what was actually running.
+    try:
+        fw = f"{dev.fw_version_major}.{dev.fw_version_minor}.{dev.fw_version_revision}"
+    except Exception:
+        fw = getattr(odrive, "__version__", "?")
+    print(f"serial={format(dev.serial_number, 'x')} board-fw={fw} "
           f"vbus={float(dev.vbus_voltage):.1f}V", flush=True)
     print(f"drive axis{args.drive_axis} motor -> calibrate axis{enc_axis_n} encoder "
           f"(cpr={cpr}, pole_pairs={pole_pairs})", flush=True)
