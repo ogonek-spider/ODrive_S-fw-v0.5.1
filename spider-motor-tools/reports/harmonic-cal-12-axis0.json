@@ -1,0 +1,51 @@
+{
+  "test": "encoder harmonic compensation calibration",
+  "motor_id": "12",
+  "serial_number": "366f36533335",
+  "fw_version": "0.5.3",
+  "drive_axis": 0,
+  "encoder_axis": 0,
+  "cpr": 16384,
+  "pole_pairs": 15,
+  "params": {
+    "speed_turns_s": 12.0,
+    "ratio": 1.0,
+    "enc_revs_target": 8.0,
+    "current_limit_a": 12.0,
+    "averages": 4,
+    "check_hz": 30.0
+  },
+  "passes": 4,
+  "samples_n": 1306,
+  "covered_encoder_revs": 8.014,
+  "min_covered_encoder_revs": 8.002,
+  "coefficients_counts": {
+    "harmonic_cos_1": 9.596060506531138,
+    "harmonic_sin_1": 5.3661992476515685,
+    "harmonic_cos_2": -5.895952718827813,
+    "harmonic_sin_2": 18.536757524972572
+  },
+  "coefficient_pass_spread_counts": {
+    "harmonic_cos_1": 0.895172174678534,
+    "harmonic_sin_1": 1.9108376496649242,
+    "harmonic_cos_2": 0.43285097717332266,
+    "harmonic_sin_2": 0.9120839543686332
+  },
+  "coefficient_rel_spread": 0.1085,
+  "error_rms_counts": {
+    "before": 21.003,
+    "after": 13.73
+  },
+  "error_pkpk_counts": {
+    "before": 113.917,
+    "after": 88.438
+  },
+  "harmonic_amp_counts": {
+    "first": 10.995,
+    "second": 19.452
+  },
+  "stop_reason": "ok",
+  "trust_gate_reasons": [],
+  "applied": false,
+  "saved_to_flash": false
+}
