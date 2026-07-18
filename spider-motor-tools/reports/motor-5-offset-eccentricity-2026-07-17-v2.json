@@ -1,0 +1,269 @@
+{
+  "serial": "367036573335",
+  "motor_id": "5",
+  "cpr": 16384,
+  "pole_pairs": 15,
+  "saved_offset": 12742,
+  "ref_count": 8192,
+  "records": [
+    {
+      "kind": "ref",
+      "seq": 0,
+      "target": 8192,
+      "actual": 8141,
+      "angle_deg": 178.87939453125,
+      "offset_float": 0.6465156078338623,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 1,
+      "target": 1024,
+      "actual": 1063,
+      "angle_deg": 23.35693359375,
+      "offset_float": 1.464750051498413,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 2,
+      "target": 8192,
+      "actual": 8154,
+      "angle_deg": 179.1650390625,
+      "offset_float": 1.3425157070159912,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 3,
+      "target": 3072,
+      "actual": 3068,
+      "angle_deg": 67.412109375,
+      "offset_float": 0.9302031397819519,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 4,
+      "target": 8192,
+      "actual": 8169,
+      "angle_deg": 179.49462890625,
+      "offset_float": 0.7359218597412109,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 5,
+      "target": 5120,
+      "actual": 5132,
+      "angle_deg": 112.763671875,
+      "offset_float": 0.7416250109672546,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 6,
+      "target": 8192,
+      "actual": 8180,
+      "angle_deg": 179.736328125,
+      "offset_float": 0.6120468974113464,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 7,
+      "target": 7168,
+      "actual": 7159,
+      "angle_deg": 157.30224609375,
+      "offset_float": 0.5535625219345093,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 8,
+      "target": 8192,
+      "actual": 8184,
+      "angle_deg": 179.82421875,
+      "offset_float": 0.6587187647819519,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 9,
+      "target": 9216,
+      "actual": 9204,
+      "angle_deg": 202.236328125,
+      "offset_float": 0.5657187700271606,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 10,
+      "target": 8192,
+      "actual": 8201,
+      "angle_deg": 180.19775390625,
+      "offset_float": 0.6706718802452087,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 11,
+      "target": 11264,
+      "actual": 11236,
+      "angle_deg": 246.884765625,
+      "offset_float": 0.9416718482971191,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 12,
+      "target": 8192,
+      "actual": 8198,
+      "angle_deg": 180.1318359375,
+      "offset_float": 1.262312412261963,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 13,
+      "target": 13312,
+      "actual": 13294,
+      "angle_deg": 292.1044921875,
+      "offset_float": 0.9016406536102295,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 14,
+      "target": 8192,
+      "actual": 8198,
+      "angle_deg": 180.1318359375,
+      "offset_float": 1.09375,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "map",
+      "seq": 15,
+      "target": 15360,
+      "actual": 15353,
+      "angle_deg": 337.34619140625,
+      "offset_float": 1.3220312595367432,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "ref",
+      "seq": 16,
+      "target": 8192,
+      "actual": 8201,
+      "angle_deg": 180.19775390625,
+      "offset_float": 0.7699375152587891,
+      "ok": true,
+      "errs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "drift_slope": 0.0071566383043924755,
+  "drift_total": 0.11450621287027961,
+  "ecc_amplitude": 0.39932573210596944,
+  "ecc_residual": 0.1271923708658854
+}
