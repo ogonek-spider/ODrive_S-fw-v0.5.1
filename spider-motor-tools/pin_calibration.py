@@ -110,7 +110,11 @@ def main():
 
     time.sleep(2.0)
     print("reconnecting to verify ...", flush=True)
-    dev = odrive.find_any(serial_number=sn, timeout=25)
+    # find_any(serial_number=) is case-sensitive; the board advertises its serial
+    # UPPERCASE while format(sn,"x") is lowercase, so a serial containing a hex
+    # letter (e.g. 367d...) would time out. Uppercase to match. See memory
+    # odrivetool-serial-filter-case-2026-07-10.
+    dev = odrive.find_any(serial_number=sn.upper(), timeout=25)
     ax = getattr(dev, f"axis{args.axis}")
     m, e = ax.motor, ax.encoder
     print(f"  user_config_loaded={dev.user_config_loaded}  is_calibrated={m.is_calibrated}", flush=True)
