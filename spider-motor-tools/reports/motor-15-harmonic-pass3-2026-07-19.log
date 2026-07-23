@@ -1,0 +1,24 @@
+Connecting to ODrive...
+serial=367f365e3335 board-fw=0.5.3 vbus=47.7V
+drive axis0 motor -> calibrate axis0 encoder (cpr=16384, pole_pairs=15)
+spin 15.00 motor t/s for 0.5s (~8.0 encoder revs at ratio 1)
+  pass 1/4: 1st amp=140.4 2nd amp= 24.1 cts  RMS 102.7->23.1 cts  (6.9 revs)
+  pass 2/4: 1st amp=138.4 2nd amp= 24.4 cts  RMS 99.4->16.3 cts  (6.9 revs)
+  pass 3/4: 1st amp=137.0 2nd amp= 20.6 cts  RMS 100.5->19.8 cts  (6.9 revs)
+  pass 4/4: 1st amp=138.2 2nd amp= 24.2 cts  RMS 102.8->23.4 cts  (6.9 revs)
+
+=== HARMONIC FIT (avg of 4 pass(es) @ 15 t/s) ===
+  samples         : 1040 total, ~6.9 revs/pass
+  1st harmonic    : cos=+119.52  sin=+69.96  amp=138.49 cts = 3.043 deg mech (pass spread +-2.1 cts)
+  2nd harmonic    : cos=+20.96  sin=-9.79  amp=23.13 cts = 0.508 deg mech (pass spread +-3.4 cts)
+  error RMS       : 101.34 -> 20.63 cts  (2.227 -> 0.453 deg)
+  error pk-pk     : 411.00 -> 152.96 cts  (9.031 -> 3.361 deg) | 1st-harmonic electrical error ~45.6 deg (x15 pole-pairs)
+
+  (dry run) to apply to RAM re-run with --apply, or to flash with --save. Manual apply:
+    odrv0.axis0.encoder.config.harmonic_cos_1 = 119.521899
+    odrv0.axis0.encoder.config.harmonic_sin_1 = 69.963814
+    odrv0.axis0.encoder.config.harmonic_cos_2 = 20.962259
+    odrv0.axis0.encoder.config.harmonic_sin_2 = -9.786463
+    odrv0.axis0.encoder.config.enable_harmonic_compensation = True
+    odrv0.save_configuration()
+  report -> spider-motor-tools/reports/motor-15-harmonic-pass3-2026-07-19.json

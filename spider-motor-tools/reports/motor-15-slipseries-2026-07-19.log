@@ -1,0 +1,8 @@
+sweep | amp(cts) | phase(deg) |   cos1  |  sin1  | spread(cts) | resid_pkpk(cts/deg)
+----------------------------------------------------------------------------------
+  1   | PARSE FAIL KeyError (see /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/spider-motor-tools/reports/motor-15-slipseries-1-2026-07-19.log)
+  2   | PARSE FAIL KeyError (see /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/spider-motor-tools/reports/motor-15-slipseries-2-2026-07-19.log)
+  3   | PARSE FAIL KeyError (see /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/spider-motor-tools/reports/motor-15-slipseries-3-2026-07-19.log)
+  4   | PARSE FAIL KeyError (see /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/spider-motor-tools/reports/motor-15-slipseries-4-2026-07-19.log)
+  5   | PARSE FAIL KeyError (see /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1/spider-motor-tools/reports/motor-15-slipseries-5-2026-07-19.log)
+----------------------------------------------------------------------------------

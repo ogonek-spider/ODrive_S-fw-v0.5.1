@@ -1,0 +1,13 @@
+Connecting to ODrive...
+R=0.2541 ohm  pole_pairs=15  vbus=47.7V
+  cmd  4.0 t/s: vel=  3.97  |V|= 4.509  Iq= 0.65  (V-R*Iq)= 4.343
+  cmd  7.0 t/s: vel=  7.01  |V|= 7.953  Iq= 0.67  (V-R*Iq)= 7.783
+  cmd 10.0 t/s: vel= 10.02  |V|=10.376  Iq= 0.69  (V-R*Iq)=10.200
+  cmd 13.0 t/s: vel= 13.03  |V|=13.950  Iq= 0.83  (V-R*Iq)=13.739
+
+fit: bemf = 1.0138*vel + 0.3905  (intercept should be ~0)
+lambda = 10.7565 mWb   Kt = 0.2420 Nm/A   Kv ~ 39.5 RPM/V
+
+-> set  odrv.axis0.motor.config.torque_constant = 0.2420
+   or   pin_calibration.py --motor-id 15 --kt 0.2420
+report -> spider-motor-tools/reports/motor-15-kt-2026-07-19.json

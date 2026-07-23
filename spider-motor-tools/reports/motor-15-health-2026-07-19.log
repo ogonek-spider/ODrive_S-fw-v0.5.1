@@ -1,0 +1,28 @@
+Connecting to ODrive...
+MOTOR #15
+serial=367f365e3335 fw=0.6.11.post0 vbus=47.7V FET=31.8C
+stored: R=0.2473 ohm  L=0.6546 mH  pole_pairs=15  enc_mode=257 cpr=16384
+
+=== motor calibration x3 (phase R/L) ===
+  run1: R=0.2547 ohm  L=0.6380 mH  OK  errs=(0, 0, 0, 0)
+  run2: R=0.2547 ohm  L=0.6373 mH  OK  errs=(0, 0, 0, 0)
+  run3: R=0.2546 ohm  L=0.6386 mH  OK  errs=(0, 0, 0, 0)
+
+=== encoder offset calibration x5 (commutation offset) ===
+  run1: offset_float=1.29091  motor.dir=1  OK  errs=(0, 0, 0, 0)
+  run2: offset_float=0.81638  motor.dir=1  OK  errs=(0, 0, 0, 0)
+  run3: offset_float=1.25370  motor.dir=1  OK  errs=(0, 0, 0, 0)
+  run4: offset_float=1.49241  motor.dir=1  OK  errs=(0, 0, 0, 0)
+  run5: offset_float=0.71873  motor.dir=1  OK  errs=(0, 0, 0, 0)
+
+=== free-spin current sweep ===
+  cmd 5 t/s: mean|Iq|=1.05A max=1.72A  actual=4.86 t/s  OK
+
+=== SUMMARY ===
+  windings (R/L)         PASS
+  commutation offset     FAIL
+  free-spin              PASS
+    offset spread = 0.774 rad (WARN>0.1, FAIL>0.25)
+  motor #15 OVERALL: FAIL
+  (config changes were RAM-only; nothing saved to flash)
+  report -> spider-motor-tools/reports/motor-15-health-2026-07-19.json

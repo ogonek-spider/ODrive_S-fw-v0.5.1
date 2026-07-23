@@ -1,0 +1,182 @@
+{
+  "motor_id": "2",
+  "serial_number": "368036503335",
+  "fw_version": "0.6.11.post0",
+  "axis": 0,
+  "vbus_v": 48.15776443481445,
+  "fet_temp_start_c": 32.825958251953125,
+  "stored": {
+    "phase_resistance_ohm": 0.0,
+    "phase_inductance_H": 0.0,
+    "pole_pairs": 15,
+    "torque_constant": 0.03999999910593033,
+    "motor_direction": 0,
+    "encoder_mode": 257,
+    "encoder_cpr": 16384,
+    "encoder_direction": 1,
+    "offset_float": 0.0
+  },
+  "pre_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "motor_calibration": {
+    "status": "PASS",
+    "R_spread_ohm": 0.006891310214996338,
+    "L_spread_H": 6.232038140296936e-05,
+    "R_mean_ohm": 0.25545328855514526,
+    "L_mean_H": 0.0005624698824249208,
+    "valid_runs": 4,
+    "runs": [
+      {
+        "run": 1,
+        "R_ohm": 0.2508147656917572,
+        "L_H": 0.0005756395403295755,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 2,
+        "R_ohm": 0.25692108273506165,
+        "L_H": 0.000578791368752718,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 3,
+        "R_ohm": 0.25637122988700867,
+        "L_H": 0.0005788845010101795,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      },
+      {
+        "run": 4,
+        "R_ohm": 0.25770607590675354,
+        "L_H": 0.0005165641196072102,
+        "calibrated": true,
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "ran": true,
+        "valid": true
+      }
+    ]
+  },
+  "encoder_offset": {
+    "status": "ERROR",
+    "reason": "fewer than 2 valid runs",
+    "valid_runs": 0,
+    "runs": [
+      {
+        "run": 1,
+        "offset_float": 0.0,
+        "motor_direction": 1,
+        "errors": [
+          256,
+          0,
+          2,
+          0
+        ],
+        "ran": true,
+        "valid": false
+      },
+      {
+        "run": 2,
+        "offset_float": 0.0,
+        "motor_direction": -1,
+        "errors": [
+          256,
+          0,
+          2,
+          0
+        ],
+        "ran": true,
+        "valid": false
+      },
+      {
+        "run": 3,
+        "offset_float": 0.0,
+        "motor_direction": -1,
+        "errors": [
+          256,
+          0,
+          2,
+          0
+        ],
+        "ran": true,
+        "valid": false
+      },
+      {
+        "run": 4,
+        "offset_float": 0.0,
+        "motor_direction": -1,
+        "errors": [
+          256,
+          0,
+          2,
+          0
+        ],
+        "ran": true,
+        "valid": false
+      },
+      {
+        "run": 5,
+        "offset_float": 0.0,
+        "motor_direction": -1,
+        "errors": [
+          256,
+          0,
+          4,
+          0
+        ],
+        "ran": true,
+        "valid": false
+      }
+    ]
+  },
+  "free_spin": {
+    "status": "FAIL",
+    "reason": "closed-loop entry failed",
+    "errors": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "runs": []
+  },
+  "fet_temp_end_c": 35.43165969848633,
+  "post_errors": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "overall": "FAIL"
+}

@@ -1,0 +1,20 @@
+Connecting to ODrive...
+serial=367f365e3335 board-fw=0.5.3 vbus=47.7V
+drive axis0 motor -> calibrate axis0 encoder (cpr=16384, pole_pairs=15)
+spin 15.00 motor t/s for 0.5s (~8.0 encoder revs at ratio 1)
+  pass 1/4: 1st amp= 30.0 2nd amp= 25.7 cts  RMS 32.0->15.9 cts  (8.0 revs)
+  pass 2/4: 1st amp= 29.6 2nd amp= 23.7 cts  RMS 30.9->15.1 cts  (8.0 revs)
+  pass 3/4: 1st amp= 28.7 2nd amp= 24.4 cts  RMS 31.2->16.4 cts  (8.0 revs)
+  pass 4/4: 1st amp= 28.5 2nd amp= 26.3 cts  RMS 31.3->14.7 cts  (8.0 revs)
+
+=== HARMONIC FIT (avg of 4 pass(es) @ 15 t/s) ===
+  samples         : 1036 total, ~8.0 revs/pass
+  1st harmonic    : cos=-21.52  sin=+19.71  amp=29.18 cts = 0.641 deg mech (pass spread +-1.3 cts)
+  2nd harmonic    : cos=-21.72  sin=+12.35  amp=24.98 cts = 0.549 deg mech (pass spread +-2.0 cts)
+  error RMS       : 31.34 -> 15.55 cts  (0.689 -> 0.342 deg)
+  error pk-pk     : 154.12 -> 95.72 cts  (3.386 -> 2.103 deg) | 1st-harmonic electrical error ~9.6 deg (x15 pole-pairs)
+
+  applied coefficients + enabled compensation (RAM)
+  saved to flash
+  NOTE: comp is now enabled in NVM. Power-cycle the board and verify a clean boot + low-current arm BEFORE relying on it.
+  report -> spider-motor-tools/reports/motor-15-harmonic-final-2026-07-19.json

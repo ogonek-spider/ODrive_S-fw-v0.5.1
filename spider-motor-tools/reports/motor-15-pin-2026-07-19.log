@@ -1,0 +1,13 @@
+Connecting to ODrive...
+motor #15  serial=367f365e3335  axis0  vbus=47.7V
+motor cal        errs=(0, 0, 0, 0)  R=0.2661  L=0.6462mH
+encoder offs cal errs=(0, 0, 0, 0)  offset=4455  offset_float=0.6466  motor.dir=1
+thermistor GPIO4: 21.0C enabled=True lim=70/90  -> OK
+set torque_constant=0.2420  motor.pre_cal=True  enc.pre_cal=True
+saving to flash ...
+reconnecting to verify ...
+  user_config_loaded=True  is_calibrated=True
+  R=0.2661  L=0.6462mH  Kt=0.2420  pole_pairs=15
+  enc mode=257 cpr=16384 cs=7 offset=4455 pre_cal=True
+  errors=0,0,0,0
+DONE.

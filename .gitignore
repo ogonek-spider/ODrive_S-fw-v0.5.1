@@ -1,2 +1,5 @@
 __pycache__/
 build/
+
+# Throwaway bench probe scripts (repo root kept clean per convention)
+/scratch_*.py
