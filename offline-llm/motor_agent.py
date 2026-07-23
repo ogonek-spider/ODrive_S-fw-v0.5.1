@@ -55,6 +55,13 @@ live ODrive robot over a CAN bridge. You are not just answering from memory --
 when a question is about the actual state of the hardware, CALL A TOOL to look,
 then answer from what it returned.
 
+There are TWO ways a motor is connected, and they use DIFFERENT tools:
+- Over the CAN bus (the assembled robot, addressed by node id) -> can_probe / can_goto.
+- Over USB directly to one ODrive on the bench (a single motor being brought up /
+  tested, NO node id) -> usb_health. If the user says "usb", "on the bench",
+  "connected directly", names a motor by number with no node, or a CAN probe
+  reports the node is not connected, use usb_health -- do NOT keep probing CAN.
+
 You have these tools:
 - can_probe(nodes): read-only health probe of joint CAN node(s). Returns
   heartbeat (axis error + state), vbus, joint encoder angle, motor velocity, Iq,
@@ -63,6 +70,18 @@ You have these tools:
 - can_goto(node, target_degrees, rate_deg_s): gently move ONE joint to a target
   angle. This PHYSICALLY MOVES the leg. Only use when the user clearly asked to
   move a joint. `node` and `target_degrees` are required; `rate_deg_s` optional.
+- usb_health(motor_id, serial_number, gearbox): run the non-destructive USB health
+  battery on a single bench ODrive over USB (motor cal repeatability, encoder
+  offset scatter, free-spin current sweep). Nothing is written to flash. It DOES
+  spin the motor shaft, so the operator confirms before it runs. Args (all
+  optional): `motor_id` (e.g. 11) labels the report; omit `serial_number` to use
+  the only connected board. Set `gearbox: true` WHENEVER a gearbox is attached to
+  the output -- the motor-side offset-cal repeatability check is contaminated by
+  reflected gearbox drag/backlash and false-FAILs, so with a gearbox on you MUST
+  pass gearbox:true (it skips that invalid sub-check and keeps motor-cal + the
+  free-spin sweep). Free-spin current is HIGHER with a gearbox (e.g. ~2 A vs
+  ~0.5 A bare for a 1:6) -- that is normal drag, not a fault. Use this for "test
+  health" / "check this motor" over USB.
 
 HOW TO REPLY -- output a SINGLE JSON object and NOTHING else, no prose, no code
 fences:
@@ -122,6 +141,54 @@ def tool_can_probe(args, allow_move):
     return run_script(["can_check.py", "--nodes", nodes])
 
 
+def _confirm(prompt):
+    """Ask the human y/N before a physical action. Returns True to proceed."""
+    print("\n  >>> " + prompt)
+    try:
+        return input("      proceed? [y/N] ").strip().lower() == "y"
+    except EOFError:
+        return False
+
+
+def _truthy(v):
+    if isinstance(v, bool):
+        return v
+    return str(v).strip().lower() in ("1", "true", "yes", "y", "on")
+
+
+def tool_usb_health(args, allow_move):
+    cmd = ["motor_health_check.py"]
+    mid = args.get("motor_id") or args.get("motor") or args.get("id")
+    if mid is not None:
+        import re
+        m = re.findall(r"\d+", str(mid))
+        if m:
+            cmd += ["--motor-id", m[0]]
+    sn = args.get("serial_number") or args.get("serial")
+    if sn:
+        cmd += ["--serial-number", str(sn)]
+    # A gearbox on the output contaminates the motor-side offset-cal repeatability
+    # (reflected drag + backlash + cogging through a ~0.5-turn slow sweep), so its
+    # "spread high -> FAIL" is a false alarm. Skip that sub-check with a gearbox
+    # attached; motor-cal (electrical, at standstill) and the free-spin current
+    # sweep (the real gearbox-drag check) stay valid.
+    if _truthy(args.get("gearbox")) or _truthy(args.get("skip_offset")):
+        cmd += ["--skip-offset"]
+    if _truthy(args.get("skip_motorcal")):
+        cmd += ["--skip-motorcal"]
+    if _truthy(args.get("skip_spin")):
+        cmd += ["--skip-spin"]
+    pretty = "%s %s" % (PY, " ".join(cmd))
+    if not allow_move:
+        return ("REFUSED: the USB health battery spins the motor shaft, so motion "
+                "must be enabled. Restart the agent with --allow-move. Proposed "
+                "command was: " + pretty)
+    if not _confirm("MODEL WANTS TO RUN THE USB HEALTH BATTERY (spins the shaft):\n"
+                    "      command: " + pretty):
+        return "Operator DECLINED the health check. Nothing was run."
+    return run_script(cmd)
+
+
 def tool_can_goto(args, allow_move):
     node = args.get("node")
     deg = args.get("target_degrees")
@@ -150,7 +217,8 @@ def tool_can_goto(args, allow_move):
     return run_script(cmd)
 
 
-DISPATCH = {"can_probe": tool_can_probe, "can_goto": tool_can_goto}
+DISPATCH = {"can_probe": tool_can_probe, "can_goto": tool_can_goto,
+            "usb_health": tool_usb_health}
 
 
 def chat(messages, model):
@@ -213,7 +281,8 @@ def answer(question, model, allow_move, max_steps=6):
         print("  [tool] %s(%s)" % (name, json.dumps(raw_args)), flush=True)
         handler = DISPATCH.get(name)
         result = handler(raw_args, allow_move) if handler \
-            else "ERROR: unknown tool %r. Valid tools: can_probe, can_goto." % name
+            else ("ERROR: unknown tool %r. Valid tools: can_probe, can_goto, "
+                  "usb_health." % name)
         messages.append({"role": "user",
                          "content": "TOOL RESULT (%s):\n%s" % (name, result)})
     return "(stopped: too many tool steps -- possible loop)"
