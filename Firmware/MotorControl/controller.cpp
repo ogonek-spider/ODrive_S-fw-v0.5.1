@@ -45,6 +45,10 @@ bool Controller::select_encoder(size_t pos_encoder_num, size_t vel_encoder_num) 
     pos_estimate_valid_src_ = &pos_axis->encoder_.pos_estimate_valid_;
     vel_estimate_src_ = &vel_axis->encoder_.vel_estimate_;
     vel_estimate_valid_src_ = &vel_axis->encoder_.vel_estimate_valid_;
+    // Software endstops come from the load (position) encoder's config.
+    pos_limit_enable_src_ = &pos_axis->encoder_.config_.enable_position_limit;
+    pos_limit_min_src_ = &pos_axis->encoder_.config_.min_position;
+    pos_limit_max_src_ = &pos_axis->encoder_.config_.max_position;
     return true;
 }
 
@@ -244,6 +248,15 @@ bool Controller::update(float* torque_setpoint_output) {
             if(!pos_estimate_linear) {
                 set_error(ERROR_INVALID_ESTIMATE);
                 return false;
+            }
+            // Software joint endstops: clamp the setpoint to the load
+            // encoder's configured travel range. Soft stop — the joint holds
+            // at the limit instead of driving past it. Only active when
+            // enabled and the range is well-formed (max >= min).
+            if (pos_limit_enable_src_ && *pos_limit_enable_src_
+                    && pos_limit_min_src_ && pos_limit_max_src_
+                    && (*pos_limit_max_src_ >= *pos_limit_min_src_)) {
+                pos_setpoint_ = std::clamp(pos_setpoint_, *pos_limit_min_src_, *pos_limit_max_src_);
             }
             pos_err = pos_setpoint_ - *pos_estimate_linear;
         }

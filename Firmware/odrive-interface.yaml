@@ -834,6 +834,15 @@ interfaces:
           harmonic_sin_1: {type: float32, doc: 1st-harmonic sine coefficient of the encoder error, in counts.}
           harmonic_cos_2: {type: float32, doc: 2nd-harmonic cosine coefficient of the encoder error, in counts.}
           harmonic_sin_2: {type: float32, doc: 2nd-harmonic sine coefficient of the encoder error, in counts.}
+          enable_position_limit:
+            type: bool
+            doc: Enable software joint endstops. When this encoder is the position controller's load encoder, the controller clamps its position setpoint to [min_position, max_position]. Soft stop, off by default.
+          min_position:
+            type: float32
+            doc: Lower software endstop in published position units [turn] (output/joint turns after direction and zero_offset). Effective only when enable_position_limit is true and max_position >= min_position.
+          max_position:
+            type: float32
+            doc: Upper software endstop in published position units [turn] (output/joint turns after direction and zero_offset). Effective only when enable_position_limit is true and max_position >= min_position.
     functions:
       set_linear_count: {in: {count: int32}}
       set_zero:

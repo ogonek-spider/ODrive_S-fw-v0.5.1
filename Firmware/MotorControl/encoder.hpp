@@ -48,6 +48,21 @@ public:
         float harmonic_cos_2 = 0.0f; // [count]
         float harmonic_sin_2 = 0.0f; // [count]
 
+        // Software joint endstops (position limits), in published position
+        // units [turn] (i.e. output/joint turns, after direction and
+        // zero_offset). When this encoder is the position controller's load
+        // encoder (its own axis for non-split joints, or the axis pointed at
+        // by load_encoder_axis for split-feedback geared joints), the
+        // controller clamps its position setpoint to [min_position,
+        // max_position]. Off by default; when disabled (or when
+        // max_position < min_position) behaviour is bit-identical to stock.
+        // These are soft stops: the setpoint cannot command past the limit,
+        // so the joint holds at the endstop instead of driving into it. They
+        // do NOT trip a fault or alter the raw count / electrical phase.
+        bool enable_position_limit = false;
+        float min_position = 0.0f; // [turn]
+        float max_position = 0.0f; // [turn]
+
         // custom setters
         Encoder* parent = nullptr;
         void set_mode(Mode value) {

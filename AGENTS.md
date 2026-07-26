@@ -232,6 +232,51 @@ flashing, restore + re-verify + re-save after, and **power-cycle and confirm a
 clean boot + low-current arm before enabling compensation** (it defaults off in
 NVM — enable it dead-last).
 
+### Software Joint Endstops (Position Limits)
+
+Local patch adding per-encoder software endstops (min/max joint angle) as
+config parameters, enforced by the position controller. Intended for the
+load-side MT6701 (`axis1`) so each hexapod leg holds inside its mechanical
+travel instead of driving into a hard stop.
+
+- Config fields (per encoder, in `Encoder::Config`, exposed on
+  `encoder.config`):
+  `enable_position_limit` (default **false**), `min_position`, `max_position`
+  — both in **published position units [turn]** (output/joint turns, i.e. the
+  same units as `encoder.pos_estimate`, after `direction` and `zero_offset`).
+- **Enforcement:** the position controller reads the limits from its **load
+  (position) encoder** — its own encoder for a non-split joint, or the axis
+  pointed at by `controller.config.load_encoder_axis` for a split-feedback
+  geared joint — and clamps `pos_setpoint_` to `[min_position, max_position]`
+  in `Controller::update()` (linear, non-circular position mode). So on a
+  geared leg you set the limits on `axis1.encoder.config` and the `axis0`
+  controller honours them.
+- **Soft stop:** the setpoint cannot command past the limit, so the joint
+  holds at the endstop; it does **not** trip a fault, and does not touch the
+  raw count or electrical phase.
+- Active only when `enable_position_limit == true` **and** the range is
+  well-formed (`max_position >= min_position`). **Disabled path is
+  bit-identical to stock** (no clamp).
+
+```python
+# axis1 (load-side MT6701 joint encoder), limits in output turns.
+odrv0.axis1.encoder.config.min_position = 0.0          # lower endstop
+odrv0.axis1.encoder.config.max_position = 140.0/360.0  # upper endstop, +140 deg
+odrv0.axis1.encoder.config.enable_position_limit = True  # enable dead-last
+odrv0.save_configuration()
+```
+
+Touched files: `Firmware/MotorControl/encoder.hpp`,
+`Firmware/MotorControl/controller.hpp`,
+`Firmware/MotorControl/controller.cpp`, `Firmware/odrive-interface.yaml`.
+
+**NVM CONFIG VERSION:** adds fields to `Encoder::Config`, so `config_version`
+in `Firmware/MotorControl/nvm_config.hpp` was bumped `0x0004 → 0x0005`. First
+flash invalidates saved config — back up JSON before flashing, restore +
+re-verify + re-save after (see the brick lesson in the harmonic section). The
+limits default off in NVM — set min/max first, verify by jogging the joint,
+then enable `enable_position_limit` last.
+
 For geared joints where MT6701 is mounted after the gearbox and Hall sensors are on the motor side, controller feedback is patched to support split position/velocity sources:
 
 ```python

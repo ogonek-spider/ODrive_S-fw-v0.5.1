@@ -84,7 +84,13 @@ public:
     bool* pos_estimate_valid_src_ = nullptr;
     float* vel_estimate_src_ = nullptr;
     bool* vel_estimate_valid_src_ = nullptr;
-    float* pos_wrap_src_ = nullptr; 
+    float* pos_wrap_src_ = nullptr;
+
+    // Software joint endstops, sourced from the load (position) encoder's
+    // config so a split-feedback joint reads the limits from its load axis.
+    bool* pos_limit_enable_src_ = nullptr;
+    float* pos_limit_min_src_ = nullptr;
+    float* pos_limit_max_src_ = nullptr;
 
 
     float pos_setpoint_ = 0.0f; // [turns]
