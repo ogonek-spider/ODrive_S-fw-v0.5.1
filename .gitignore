@@ -1,5 +1,6 @@
 __pycache__/
 build/
 
-# Throwaway bench probe scripts (repo root kept clean per convention)
+# Throwaway bench probe scripts — write these into spider-motor-tools/scratch/
+spider-motor-tools/scratch/
 /scratch_*.py
