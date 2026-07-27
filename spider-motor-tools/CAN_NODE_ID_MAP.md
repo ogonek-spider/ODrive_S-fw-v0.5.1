@@ -22,7 +22,7 @@ and `Serial` are filled in as boards get mounted and assigned.
 |:---:|:-----:|:------------|:-------------:|:-------:|:-------------|
 | 1   | 1     | top         | **11**        | 12      | 366f36533335 |
 | 1   | 2     | middle      | **12**        | 4       | 3680366e3335 |
-| 1   | 3     | bottom/knee | **13**        | 8       | 3482345a3034 |
+| 1   | 3     | bottom/knee | **13**        | 1       | 367b36793335 |
 | 2   | 1     | top         | **21**        |         |              |
 | 2   | 2     | middle      | **22**        |         |              |
 | 2   | 3     | bottom/knee | **23**        | 3       | 367c365e3335 |
@@ -52,6 +52,55 @@ Bench board **serial `3482345a3034` (physical motor #8) → leg 1, bottom/knee �
 Bench board **serial `366f36533335` (physical motor #12) → leg 1, top = COXA → `can_node_id = 11`** (applied + saved 2026-07-26). Mounted in robot with **1:6 gearbox** (NOT the 34:1 used on knees; verify per-joint ratio). Motor **not** free to spin → no motor recal done; commutation from bench setup (offset 8399, Kt 0.260) — **verified working through the gearbox** (2026-07-26): smooth current, no faults, drives both directions. **Sign: +motor velocity → +joint** (toward max); `position_direction = +1`. + is the higher-friction direction (needs more current to break friction — fine within 15 A). Joint-side MT6701 on `axis1` configured (mode 261, cpr 16384, CS6, `pre_calibrated`), split feedback `load_encoder_axis=1`/`vel_encoder_axis=0`. Joint encoder healthy (CRC bad ~0.003%, no slip over a full hand-sweep). **Joint coordinate:** `direction=1`, `zero_offset=1660` (raw at min), away-from-min = positive. **Range:** min = 0° (raw 1660); physical hard max ≈ **+154°** (raw ~8677) the short way. NB: the coxa can also swing the *other* way past min (explored to −214°), so total mobility > 180° — keep operation on the one 0..+ arc. **OPERATING MAX CAPPED at +140°** (raw ~8032) — host must never command above this: the abs-encoder linear `pos_estimate` boots **1 turn low** above raw **8192** (= +143.6°); ≤140° boots clean everywhere (`pos_cpr` circular is always correct; only linear `pos_estimate` wraps). See [[abs-encoder-boot-wrap-halfturn-2026-07-26]]. **TODO:** `pos_gain`/tune when first driven closed-loop position; measured gearbox ratio came out garbage (~3×) from coarse endpoint sampling — do a clean synchronized-sweep ratio check to confirm 1:6.
 
 Bench board **serial `3680366e3335` (physical motor #4) → leg 1, middle = FEMUR → `can_node_id = 12`** (applied + saved 2026-07-26). Flashed **fw 0.5.4** (position-limit / min-max endstop patch) — first board to carry it; base config restored from backup (Kt 0.2435, offset 19181, mode 257/CS7). Mounted with **1:18 compound gearbox** (1:6 + 1:3 planetary; ratio re-confirmed on-robot ≈18.3:1 from motor-turns/output-turns). Motor **not** free to spin → no motor recal; commutation carried from bench. **Verified working through the gearbox** (2026-07-26): 3× full-range 0↔155° closed-loop cycles, ±0.8° tracking, no faults, motor turns repeatable (no slip). **Sign: +motor velocity → +joint (leg UP, away from ground)**; `position_direction = +1`. Joint-side MT6701 on `axis1` (mode 261, cpr 16384, CS6, `pre_calibrated`), split feedback `load_encoder_axis=1`/`vel_encoder_axis=0`. Joint encoder healthy (CRC-miss ~2.5% scattered under PWM EMI, no consecutive-miss fault, no slip). **Joint coordinate:** `direction=1`, `zero_offset=7887` (raw at ground) — **min = 0° = leg lowered to ground**; physical hard max ≈ **+165°** (raw ~15386). **Software endstops ENABLED:** `min_position=0`, `max_position=+160°` (`enable_position_limit=True`); clamp verified (commanded +200° held at ~157°). Tuned `pos_gain=140`, `vel_gain=0.2`, `vel_integrator_gain=0.8` (softer stalled on small up-steps against gravity+planetary stiction). **Boot-wrap:** ground rest (raw 7887) is below the raw-8192 boundary so it **boots clean at 0**; only a power-up while held raised (raw>8192) would boot 1 turn low — a dangling leg rests at ground, so this is safe. See [[abs-encoder-boot-wrap-halfturn-2026-07-26]].
+
+Board **serial `367b36793335` (physical motor #1) → leg 1, bottom/knee = KNEE →
+`can_node_id = 13`** (applied + saved 2026-07-27). **This replaces motor #8
+(`3482345a3034`) in this slot** — the row above is updated; reassign #8 elsewhere.
+Flashed **fw 0.5.4** (0.5.1 before); config restored intact (Kt 0.253, offset
+17926, R 0.240 Ω, L 0.595 mH, pp15, AS5047P mode 257 / CS7, brake 2.0 Ω armed;
+**no motor thermistor**). **Gearbox 1:6** (user-stated — NOT the ≈35:1 of the
+earlier knees, see the knee-angle reference). Joint-side **MT6701 on `axis1`
+configured**: mode 261, cpr 16384, CS6, `pre_calibrated=True` — verified healthy
+(**0 bad CRC in 440k samples**, 0-count spread at rest, errors 0 across a reboot).
+**The motor was never moved** — no calibration, no arming.
+
+**STILL TODO on this joint** (all need motion): joint `direction`/`zero_offset`,
+split feedback (`load_encoder_axis=1`, `vel_encoder_axis=0`,
+`position_direction`), software endstops, `pos_gain` tune.
+⚠️ It currently sits at **+175.9° with `zero_offset = 0`** — only ~4° from the
+**±180° wrap seam**. The published joint angle is
+`wrap_pm(raw_count - zero_offset, cpr/2)`, i.e. the signed short-way angle in
+(-180°, +180°], so travel that crosses that seam flips sign discontinuously.
+**Pick `zero_offset` so the whole travel is centred well away from ±180°.**
+
+**CAN hazard fixed on every leg-1 board:** `axis1` defaults to
+`can_node_id = 1` with a 100 ms heartbeat, and `ODriveCAN::send_heartbeat`
+transmits whenever the rate is > 0 without checking whether the axis is used —
+so every board on the bus would emit heartbeats claiming node 1. All three leg-1
+boards now have `axis1.config.can_heartbeat_rate_ms = 0`. **Do this on every new
+board, in the same session as `can_node_id`.**
+
+**Femur update 2026-07-27 — tibia fitted (+4 kg), leg now stands on soft ground.**
+The 2026-07-26 numbers above were measured with a *lighter* leg and no tibia; two
+of them are superseded:
+
+- **`current_lim` 15 → 25 A (saved).** With the tibia the joint could not move at
+  all at 15 A: an up-move stalled at ~14 A after 2.5°. It needed **16.6 A** to
+  break away. Note this board has **no motor thermistor** — nothing protects the
+  winding.
+- **`min_position` 0° → +58.21° (saved).** "0° = leg lowered to ground" is now
+  **unreachable**: the foot bottoms out on the ground at ~58.2°, and released
+  poses sink back to it. The ground is **soft**, so this rest angle drifts.
+- **`max_position` is still 160° and is NOT re-derived** — treat it as fiction
+  until measured with the tibia fitted.
+
+**Holding cost measured** (instrumented hold, `vel_integrator_torque` logged):
+holding **+78.6°** settles at **3.20 Nm motor / 13.1 A ≈ 40 Nm at the joint**,
+reached after ~38 s of integrator fill (it converges — it is not runaway windup).
+That is **~62 W copper**, vs the ~30 W that thermally destroyed motor #10. The
+first ~10 s of any hold stick-slips ±3.5° with 14.6 A peaks. Sustained holding
+near horizontal needs mechanical help (counterbalance / brake) or a 200 mm
+aluminium radiator; it cannot be tuned away.
 
 Bench board **serial `367c365e3335` (physical motor #3, bare motor) → leg 2, bottom/knee → `can_node_id = 23`** (applied + saved 2026-07-12).
 

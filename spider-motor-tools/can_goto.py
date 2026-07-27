@@ -137,7 +137,7 @@ class Bridge:
         return None, None
 
 
-def goto(port, node, target_turn, rate_deg_s, iq_cap, tol_deg, hold_s, keep_closed):
+def goto(port, node, target_turn, rate_deg_s, iq_cap, tol_deg, hold_s, keep_closed, settle_s=4.0):
     br = Bridge(port, node)
     print("node %d -> target %.4f turn (%.1f deg)" %
           (node, target_turn, target_turn * 360), flush=True)
@@ -212,18 +212,51 @@ def goto(port, node, target_turn, rate_deg_s, iq_cap, tol_deg, hold_s, keep_clos
         if cmd == target_turn:
             break
 
-    time.sleep(0.3)
+    # Settle: the ramp only finishes COMMANDING the target -- a heavy geared
+    # joint still has to converge to it. Judging 0.3 s later reports a false
+    # miss (and, with the abort path, skips the requested hold). Poll until it
+    # lands inside tolerance or settle_s expires, still watching for faults and
+    # the Iq cap so a genuine stall is not mistaken for slow convergence.
     p, v = br.get_pos()
+    if ok:
+        end = time.time() + settle_s
+        while time.time() < end:
+            if p is not None and abs(p - target_turn) * 360 <= tol_deg:
+                break
+            err, state = br.hb(timeout=0.06)
+            if err:
+                print("  FAULT err=0x%X while settling -> stop" % err, flush=True)
+                ok = False
+                break
+            iq = br.get_iq(timeout=0.08)
+            if iq is not None and abs(iq) > iq_cap:
+                print("  Iq=%.2f A > cap %.2f A while settling -> stop" % (iq, iq_cap), flush=True)
+                ok = False
+                break
+            time.sleep(0.1)
+            p, v = br.get_pos(timeout=0.15)
+
     iq = br.get_iq()
     print("  reached: pos=%.4f turn (%.1f deg)  Iq=%.2f A" %
           (p if p is not None else float('nan'),
            (p * 360) if p is not None else float('nan'),
            iq if iq is not None else float('nan')), flush=True)
-    if p is not None and abs(p - target_turn) * 360 <= tol_deg:
+    if ok and p is not None and abs(p - target_turn) * 360 <= tol_deg:
         print("  within %.1f deg tolerance." % tol_deg, flush=True)
-    else:
-        print("  NOT within tolerance.", flush=True)
+    elif ok:
+        print("  NOT within tolerance after %.1f s settle." % settle_s, flush=True)
         ok = False
+
+    # SAFETY: an abort (fault, Iq cap, missed target) means the joint is stalled
+    # or faulted -- it must NEVER be left energized pushing into whatever stopped
+    # it. --keep-closed only applies to a clean, in-tolerance arrival. Holding a
+    # stalled geared joint is the continuous-current condition that cooked an
+    # earlier motor.
+    if not ok:
+        br.send(CMD_SET_AXIS_STATE, struct.pack("<i", AXIS_STATE_IDLE))
+        print("  -> ABORTED: forced IDLE (gearbox holds pose), --keep-closed ignored", flush=True)
+        br.close()
+        return ok
 
     if hold_s > 0:
         time.sleep(hold_s)
@@ -245,12 +278,13 @@ def main():
     p.add_argument("--iq-cap", type=float, default=6.0, help="abort if |Iq| exceeds this (A)")
     p.add_argument("--tol", type=float, default=1.5, help="arrival tolerance deg")
     p.add_argument("--hold", type=float, default=0.5, help="hold seconds after arrival")
+    p.add_argument("--settle", type=float, default=4.0, help="max seconds to wait for convergence before judging tolerance")
     p.add_argument("--keep-closed", action="store_true", help="stay in closed loop (default: idle)")
     args = p.parse_args()
     port = args.port or find_bridge()
     print("bridge port:", port, flush=True)
     ok = goto(port, args.node, args.target, args.rate, args.iq_cap,
-              args.tol, args.hold, args.keep_closed)
+              args.tol, args.hold, args.keep_closed, args.settle)
     raise SystemExit(0 if ok else 1)
 
 

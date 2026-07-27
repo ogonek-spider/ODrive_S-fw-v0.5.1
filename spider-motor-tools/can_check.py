@@ -16,8 +16,11 @@ import serial
 CMD_HEARTBEAT = 0x001
 CMD_GET_ENCODER_EST = 0x009
 CMD_GET_IQ = 0x014
-CMD_GET_TEMP = 0x015
 CMD_GET_VBUS = 0x017
+# NB: there is NO temperature message in this fork's CAN Simple. 0x015 is
+# MSG_GET_SENSORLESS_ESTIMATES (pos/vel floats) -- polling it as "temperature"
+# decodes sensorless estimates as degrees C and prints plausible-looking
+# nonsense (e.g. -3.1 C at room temperature). See can_simple.hpp.
 
 STATE_NAMES = {0: "UNDEFINED", 1: "IDLE", 3: "CALIB", 8: "CLOSED_LOOP"}
 
@@ -129,10 +132,6 @@ def probe(br, node, label):
         iq_sp, iq_meas = struct.unpack("<ff", iq[0:8])
         print("  Iq: setpoint=%.3f A  measured=%.3f A" % (iq_sp, iq_meas), flush=True)
 
-    tp = br.get(node, CMD_GET_TEMP)
-    if tp and len(tp) >= 8:
-        fet, motor = struct.unpack("<ff", tp[0:8])
-        print("  temp: fet=%.1f C  motor=%.1f C" % (fet, motor), flush=True)
     return err == 0
 
 
