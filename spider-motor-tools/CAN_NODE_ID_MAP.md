@@ -58,20 +58,61 @@ Board **serial `367b36793335` (physical motor #1) → leg 1, bottom/knee = KNEE 
 (`3482345a3034`) in this slot** — the row above is updated; reassign #8 elsewhere.
 Flashed **fw 0.5.4** (0.5.1 before); config restored intact (Kt 0.253, offset
 17926, R 0.240 Ω, L 0.595 mH, pp15, AS5047P mode 257 / CS7, brake 2.0 Ω armed;
-**no motor thermistor**). **Gearbox 1:6** (user-stated — NOT the ≈35:1 of the
-earlier knees, see the knee-angle reference). Joint-side **MT6701 on `axis1`
+**no motor thermistor**). Joint-side **MT6701 on `axis1`
 configured**: mode 261, cpr 16384, CS6, `pre_calibrated=True` — verified healthy
 (**0 bad CRC in 440k samples**, 0-count spread at rest, errors 0 across a reboot).
-**The motor was never moved** — no calibration, no arming.
 
-**STILL TODO on this joint** (all need motion): joint `direction`/`zero_offset`,
-split feedback (`load_encoder_axis=1`, `vel_encoder_axis=0`,
-`position_direction`), software endstops, `pos_gain` tune.
-⚠️ It currently sits at **+175.9° with `zero_offset = 0`** — only ~4° from the
-**±180° wrap seam**. The published joint angle is
-`wrap_pm(raw_count - zero_offset, cpr/2)`, i.e. the signed short-way angle in
-(-180°, +180°], so travel that crosses that seam flips sign discontinuously.
-**Pick `zero_offset` so the whole travel is centred well away from ±180°.**
+**First motion + joint coordinates, 2026-07-28.** Motor armed cleanly on the
+robot (the bench commutation offset is correct): held position at ±0.1 A, no
+faults. **`+` motor = `+` joint = leg UP** (shin folds), verified with a 4° test
+move.
+
+- **Joint zero captured at the LOWER travel point:** `axis1.encoder.config`
+  `direction = +1`, **`zero_offset = 6186`** — saved and verified across a
+  reconnect. Bottom = 0°, up positive. This also resolves the old ±180°-seam
+  warning: the whole travel now sits on one side of the seam with ~18° to spare.
+- **Travel:** 0° (bottom) → +82.3° (pose the leg rests in) → **upper physical
+  stop ≈ +162°, NOT yet measured** (user's estimate of +80° above the rest pose).
+- **No lower hard stop** within 43° of powered travel — the bottom was set by
+  hand. Descending has to be PUSHED (gravity pulls the shin back toward hanging)
+  until it goes **over-centre past horizontal**, after which gravity takes over
+  and the descent runs away in stick-slip bursts (a 30° step overshot to 65.7°).
+- **Split feedback configured + saved:** `load_encoder_axis = 1`,
+  `vel_encoder_axis = 0`, `position_direction = +1`, **`pos_gain = 130`**.
+  Verified that CAN `Get_Encoder_Estimates` now reports the **joint** angle
+  (94.2° over CAN == 94.2° over USB) → **`can_goto.py --target` for node 13 is in
+  JOINT turns from here on, not motor turns.**
+- **`min_position = 0°`; `max_position = 140°` is PROVISIONAL and
+  `enable_position_limit = False`** — do not enable until the top is measured.
+
+🔴 **Gearbox is NOT a constant 1:6 — the ratio VARIES with joint angle:**
+measured **7.39 / 7.38** (bottom +1…+39°, taken in opposite directions, agreeing
+to 0.1% — so not backlash), **6.30** (mid +38…+89°), **5.64** (top +76…+86°).
+Consistent with a linkage drive of changing lever arm. **Never convert motor
+angle to joint angle with a fixed factor** — that is what `load_encoder_axis = 1`
+is for. `pos_gain = 130` (= motor-side 20 × ratio) keeps the effective motor-side
+gain between 17.6 and 23 across the whole travel.
+
+🔴 **`pos_estimate` can silently lose a WHOLE TURN.** It is a linear accumulator,
+seeded once from `wrap_pm(count_in_cpr - zero_offset, cpr/2)` and thereafter only
+integrating deltas. During this session's stick-slip falls it drifted to
+**−265.78° while the true angle was +94.22°** (exactly −360°); `count_in_cpr`
+stayed correct throughout. **Re-sync without rebooting by writing `zero_offset`
+back onto itself** — its setter calls `Encoder::reset_user_position()`:
+
+```python
+e = odrv0.axis1.encoder
+e.config.zero_offset = e.config.zero_offset   # re-seeds from count_in_cpr
+```
+
+**Always verify `pos_estimate == wrap_pm(count_in_cpr - zero_offset)` before
+enabling split feedback or endstops** — otherwise the controller reads the joint
+a full turn away, pins the setpoint at `min_position`, and tries to drive 360° of
+joint travel to "correct" it.
+
+**STILL TODO on this joint:** measure the upper physical stop, set
+`max_position` with seam margin and enable `enable_position_limit`, tune
+`pos_gain` under real load, re-verify across a power cycle.
 
 **CAN hazard fixed on every leg-1 board:** `axis1` defaults to
 `can_node_id = 1` with a 100 ms heartbeat, and `ODriveCAN::send_heartbeat`
