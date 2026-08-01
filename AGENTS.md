@@ -118,6 +118,89 @@ useful for motor diagnostics). CAN Simple in this v0.5.1 is pure
 request/response (RTR) with no cyclic broadcast, so this one handler is the only
 path. No NVM-layout change → no config-version bump.
 
+### Live configuration over CAN (`MSG_CONFIG_ACCESS` / `MSG_CONFIG_COMMIT`)
+
+Everything needed to bring a joint up — endstops, joint zero and direction,
+position gains, current limit — used to live only behind USB, so tuning a leg
+already bolted to the robot meant physically reaching the board and replugging.
+Stock CAN Simple has no generic parameter access, so this fork adds a small
+typed parameter table (fw **0.5.6**).
+
+Two new command IDs. **`0x019`–`0x01B` are deliberately skipped**: upstream
+ODrive 0.5.x later assigned them to `SET_LINEAR_COUNT` / `SET_POS_GAIN` /
+`SET_VEL_GAINS`, and colliding with a host library that knows those would be
+worse than wasting three slots.
+
+- **`MSG_CONFIG_ACCESS = 0x01C`** — read or write one parameter. Always a
+  **DATA frame, never RTR** (an RTR frame carries no payload, so it could not
+  name a parameter). Request `[0]=op (0 read / 1 write) [1]=param [2..3]=0
+  [4..7]=value LE`; reply on the same ID `[0]=op (| 0x80 on failure)
+  [1]=param [2]=status [3]=type [4..7]=value AFTER the operation`. The reply
+  always carries the resulting value, so a write is self-verifying — a
+  rejected or clamped write is visible without a second read.
+- **`MSG_CONFIG_COMMIT = 0x01D`** — `[0..3]=magic 0x0DC0FFEE [4]=action`
+  (1 = save to NVM, 2 = reboot). The magic key exists so bus noise can never
+  erase a flash sector under a running robot.
+
+**Parameter groups** (full table in `can_simple.hpp`, host mirror in
+`spider-motor-tools/can_config.py`):
+
+- `0x01..0x0B` — the **joint (load) encoder**, resolved through
+  `controller.config.load_encoder_axis` exactly like the
+  `Get_Encoder_Estimates` patch. This is the important part: on a split-feedback
+  geared joint, `min_position` / `max_position` / `zero_offset` physically live
+  on **`axis1`**, whose CAN heartbeat is muted on the robot (otherwise every
+  board claims node 1) and which is therefore not addressable on the bus. They
+  are configured through the **motor** axis's node id instead. Includes
+  `set_zero`, and `reseed` for the lost-turn `pos_estimate` bug.
+- `0x10..0x17` — controller: `pos_gain`, `vel_gain`, `vel_integrator_gain`,
+  `vel_limit`, `position_direction`, `load/vel_encoder_axis`,
+  `input_filter_bandwidth`.
+- `0x20..0x21` — motor: `current_lim`, `torque_constant`.
+- `0x30..0x32` — **temperatures, read-only.** This closes the known "no temp
+  over CAN" gap. NB: with no thermistor wired the ADC floats and
+  `motor_temp` reads a plausible-looking value — trust it only where one is
+  actually fitted and enabled.
+- `0x40..0x42` — `can_node_id`, this axis's heartbeat rate, and **the OTHER
+  axis's heartbeat rate**, so the "every board claims node 1" hazard can be
+  fixed without ever addressing the offending axis.
+
+**Write guards** (each returns a status instead of applying):
+
+- `min_position` / `max_position` refuse a write that would **invert an
+  already-enabled range**. `Controller::update()` only clamps while
+  `max >= min`, so an inverted range silently stops enforcing the endstops
+  while `enable_position_limit` still reads back as `1` — the joint would look
+  protected and not be. Widening is always allowed; to reorder a range,
+  disable the limits first.
+- `enable_position_limit` refuses to turn on over a non-finite or inverted
+  range.
+- `load/vel_encoder_axis` and `can_node_id` are **idle-only** (the controller
+  binds its encoder pointers on closed-loop entry).
+- gains / limits reject non-finite and non-positive values.
+- `can_node_id`'s reply is addressed to the node id **from the received
+  frame**, not the new one, so the host still hears the acknowledgement.
+
+**NVM save is deferred, never done in the CAN thread.** The CAN server thread
+has a **1 kB stack** (`interface_can.hpp`), and the flash-sector erase inside
+`save_configuration()` stalls the core for far longer than one 8 kHz control
+period. The handler validates the request (magic key + **all axes IDLE**) and
+raises `odrv.config_save_request_`; `communication_task()` (4 kB stack, and
+previously an idle `osDelay(1000)` loop) performs the save and replies with
+`CONFIG_SAVE_DONE` / `CONFIG_SAVE_FAILED`. Host must poll for that second frame
+— the first reply only means "accepted".
+
+**No config struct changed**, so `config_version` in `nvm_config.hpp` is **NOT**
+bumped and an existing saved configuration survives this update — this is one
+last USB-DFU trip, and after it joints are configurable entirely over CAN.
+
+Touched files: `Firmware/communication/can_simple.hpp`, `can_simple.cpp`,
+`Firmware/communication/communication.cpp`,
+`Firmware/MotorControl/odrive_main.h`.
+
+Host side: `spider-motor-tools/can_config.py` (CLI) and the `A` / `S` keys in
+`spider-motor-tools/can_jog.py`.
+
 ### Consecutive-miss `ABS_SPI_COM_FAIL` detection
 
 `Firmware/MotorControl/encoder.cpp` trips `ERROR_ABS_SPI_COM_FAIL` for the
@@ -317,7 +400,7 @@ Holding current vs joint angle: ~2.8 A near horizontal (max gravity moment),
 Bump the firmware version **every time firmware source changes** so the version
 reported by a flashed board tells you which build is on it.
 
-- **Source of truth:** `tools/odrive/version.txt` (currently `fw-v0.5.2-mt6701`).
+- **Source of truth:** `tools/odrive/version.txt` (currently `fw-v0.5.5-mt6701`).
   There are no git tags, so `git describe` returns a bare commit hash that fails
   the `vMAJOR.MINOR.REVISION` regex; `version.py` then falls back to
   `version.txt`. The trailing `-mt6701` only sets the "unreleased" flag — **only

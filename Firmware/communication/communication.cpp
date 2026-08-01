@@ -6,6 +6,7 @@
 #include "interface_usb.h"
 #include "interface_uart.h"
 #include "interface_can.hpp"
+#include "can_simple.hpp"
 #include "interface_i2c.h"
 
 #include "odrive_main.h"
@@ -72,7 +73,28 @@ void communication_task(void * ctx) {
     }
 
     for (;;) {
-        osDelay(1000); // nothing to do
+        // LOCAL ADDITION: service a "save configuration" requested over CAN.
+        // Runs here, not in the CAN server thread, because that thread only has
+        // a 1 kB stack and because the flash erase inside save_configuration()
+        // blocks the core for far longer than one control period -- the CAN
+        // handler has already refused the request unless every axis is idle.
+        if (odrv.config_save_request_) {
+            bool was_loaded = odrv.user_config_loaded_;
+            odrv.user_config_loaded_ = false;
+            odrv.save_configuration();
+            bool ok = odrv.user_config_loaded_;
+            if (!ok) {
+                odrv.user_config_loaded_ = was_loaded;
+            }
+            if (odrv.config_.enable_i2c_instead_of_can == false) {
+                CANSimple::send_config_commit_reply(
+                        odrv.config_save_reply_node_, odrv.config_save_reply_ext_,
+                        CANSimple::CONFIG_ACTION_SAVE,
+                        ok ? CANSimple::CONFIG_SAVE_DONE : CANSimple::CONFIG_SAVE_FAILED);
+            }
+            odrv.config_save_request_ = 0;
+        }
+        osDelay(10);
     }
 }
 

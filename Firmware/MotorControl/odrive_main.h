@@ -288,6 +288,20 @@ public:
     bool user_config_loaded_;
 
     uint32_t test_property_ = 0;
+
+    // LOCAL ADDITION: deferred "save configuration to NVM", requested over CAN
+    // (CANSimple::MSG_CONFIG_COMMIT) and executed by communication_task().
+    //
+    // It cannot run in the CAN server thread: that thread has a 1 kB stack, and
+    // the flash-sector erase inside save_configuration() stalls the core for
+    // much longer than one control period. The CAN handler validates the
+    // request (magic key + all axes idle) and only raises this flag; the
+    // communication thread performs the save and sends the reply frame.
+    // Plain RAM members -- not exposed over Fibre, not part of any NVM struct,
+    // so config_version is unaffected.
+    volatile uint8_t config_save_request_ = 0;  // 1 = save pending
+    uint32_t config_save_reply_node_ = 0;       // CAN node id to answer on
+    bool config_save_reply_ext_ = false;
 };
 
 extern ODrive odrv; // defined in main.cpp
