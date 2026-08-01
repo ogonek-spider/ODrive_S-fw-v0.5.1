@@ -16,6 +16,25 @@ Per-joint CAN addressing for the hexapod (6 legs × 3 motors = 18 joints).
 Rows are keyed by leg position. `Motor #` (physical build/characterization order)
 and `Serial` are filled in as boards get mounted and assigned.
 
+## Gearbox ratio by position (production build)
+
+Same motor everywhere, different boxes:
+
+| Position | Gearbox | Joint-side `pos_gain` |
+|:---------|:--------|:---------------------:|
+| 1 coxa   | 1:6         | ~140 (derived)  |
+| 2 femur  | 6×6×3 = **108:1** | **2500** (step-tested, leg 6) |
+| 3 knee   | 1:6         | ~140 (derived)  |
+
+With split feedback (`load_encoder_axis = 1`) the position error is in **output**
+turns, so `pos_gain` is a joint-side gain and **scales with the ratio**
+(≈ `23 × ratio`). Never carry a femur gain onto a coxa/knee — 2500 on a 1:6
+joint is ~18× too stiff. These values live in `JOINT_TUNING` in
+[robot_joint_setup.py](robot_joint_setup.py), which writes and verifies them.
+
+⚠️ **Leg 1 is an early prototype and does not follow this table** — its coxa is
+1:6, its femur **1:18**, and its knee measures 5.6–7.4:1 varying with angle.
+
 ## Assignment
 
 | Leg | Motor | Location    | `can_node_id` | Motor # | Serial       |
@@ -36,8 +55,8 @@ and `Serial` are filled in as boards get mounted and assigned.
 | 5   | 2     | middle      | **52**        |         |              |
 | 5   | 3     | bottom/knee | **53**        |         |              |
 | 6   | 1     | top         | **61**        |         |              |
-| 6   | 2     | middle      | **62**        |         |              |
-| 6   | 3     | bottom/knee | **63**        |         |              |
+| 6   | 2     | middle      | **62**        | 9       | 318136883335 |
+| 6   | 3     | bottom/knee | **63**        | 13      | 367036483335 |
 
 ## Setting it on a board (single-axis → use axis0)
 
@@ -143,6 +162,68 @@ first ~10 s of any hold stick-slips ±3.5° with 14.6 A peaks. Sustained holding
 near horizontal needs mechanical help (counterbalance / brake) or a 200 mm
 aluminium radiator; it cannot be tuned away.
 
+Board **serial `318136883335` (physical motor #9) → leg 6, middle = FEMUR →
+`can_node_id = 62`** (fw **0.5.6**). Position loop tuned over USB 2026-08-01.
+
+🔴 **Gearbox is 6 × 6 × 3 = 108:1 — NOT the 1:18 that leg 1's femur uses.**
+Measured independently before the build was confirmed: a monotonic motor ramp of
+**+1.4 motor turns produced +4.09° of joint travel**, instantaneous ratio stable
+at **113–146:1** across the whole sweep, second-half fit **112.9:1**, sign **+1**
+(+motor → +joint). Do not assume femurs share a ratio between legs.
+
+- **Split feedback SAVED:** `load_encoder_axis = 1`, `vel_encoder_axis = 0`,
+  `position_direction = +1`, **`pos_gain = 2500`**, `vel_gain = 0.167`,
+  `vel_integrator_gain = 0.333` (the last two left at defaults). Verified across
+  the `save_configuration()` reboot. Since `load_encoder_axis = 1`, CAN
+  `Get_Encoder_Estimates` on node 62 reports the **joint** angle → `can_goto.py
+  --target` is in JOINT turns for this node.
+- **Why 2500:** with `load_encoder_axis = 1` the gain is joint-side, so it must
+  carry the ratio — `2500 / 108 ≈ 23`, i.e. the usual motor-side ~20. Sweep with
+  ±5° joint steps: gain 300 settled in 3.3 s with a 0.32° residual, 700 and 1500
+  were also sluggish (3.7–3.9 s, ~0.5° off), **2500 settled in 0.27 s with
+  −0.04° residual**, and 5000 bought nothing while growing overshoot. The
+  gravity-assisted downward step consistently overshoots more (+0.67°) and draws
+  ~8 A vs ~5 A upward.
+- **Joint-side MT6701 on `axis1` is healthy:** mode 261, cpr 16384, CS 6,
+  **0 bad CRC in 96 218 samples**, 12-count spread at rest, and
+  `pos_estimate == wrap_pm(count_in_cpr − zero_offset)` exactly (no lost turn).
+- **Backlash ≈ 1.5° at the joint.** After a ramp out and back the motor returned
+  exactly to its start while the joint stayed **+1.56°** away. That is the
+  accuracy floor here — the ±0.5° step residuals sit inside it, so do not chase
+  them with gain.
+
+**Holding cost — this is the argument for the 108:1 box.** A 50 s static hold at
+18.4° settled at **Iq ≈ 2.4–2.9 A ≈ 0.61 Nm motor ≈ 37–46 Nm at the joint**
+(η 0.57–0.70), for **~2–3 W of copper**, with drift under 0.10°. Compare leg 1's
+1:18 femur holding a comparable **40 Nm at 13.1 A ≈ 62 W** — same joint torque
+for **~4.5× less current and ~20× less heat**, because motor torque scales as
+1/(N·η) and copper loss as I². Against a project whose documented killer is
+thermal death during continuous gravity holds (motor #10 at ~30 W, the LA8308
+burnt winding), **108:1 is the right choice for a femur**; it also holds pose at
+near-zero current instead of needing a counterbalance or brake. The costs are the
+1.5° backlash, ~6× less joint speed (`vel_limit = 10` motor t/s → only 33°/s at
+the joint), and shock loads landing on gear teeth instead of being absorbed.
+NB the hold current was still creeping upward at 50 s (0.8 → 2.9 A as the
+integrator filled), so treat ~3 A as a lower bound, and note the pose at 18.4° is
+not necessarily the worst-case gravity moment.
+
+**STILL TODO on this joint:** joint `zero_offset`/`direction` are still `0`/`+1`
+(the working pose reads 18.4°, an arbitrary origin) — capture a real zero;
+measure the travel limits and set `min_position`/`max_position` +
+`enable_position_limit` (currently **disabled**, so nothing stops this joint);
+re-verify the tuning over CAN rather than USB.
+
+⚠️ **`axis1.config.can_heartbeat_rate_ms = 0` is already set** (the node-1 mute).
+⚠️ Motor thermistor is enabled and its filter settles slowly after a reboot —
+it read −3 °C immediately after the save-reboot, 6 → 16 °C during the hold, and
+20 °C once settled. Do not trust a reading taken right after boot.
+
+⚠️ **USB telemetry trips `MOTOR_ERROR_CONTROL_DEADLINE_MISSED` (0x10) on this
+board.** Polling ~8 endpoints per 50 ms faulted within seconds and 15 Hz × 2
+reads still faulted repeatedly; **8 Hz with 2 reads per sample, and 3 Hz with 1
+read, ran clean**. This is the known "runtime telemetry on CAN, not USB" rule —
+if you must tune over USB, keep it under ~30 endpoint reads/s.
+
 Bench board **serial `367c365e3335` (physical motor #3, bare motor) → leg 2, bottom/knee → `can_node_id = 23`** (applied + saved 2026-07-12).
 
 Displaced: physical motor #2 (`367836893335`) no longer holds a slot — reassign it once its box faults are fixed.
@@ -220,3 +301,54 @@ Per-motor issues found on the bench, to fix before final assembly.
   Split-feedback is configured (`load_encoder_axis=1` → the magnet-less MT6701),
   which will also need attention before position control, but velocity/torque
   tests use `vel_encoder_axis=0` (good AS5047P) so it didn't affect these.
+
+Board **serial `367036483335` (physical motor #13) → leg 6, bottom/knee = KNEE →
+`can_node_id = 63`** (applied + saved 2026-07-31). Note `63` is the **6-bit
+ceiling** of CAN Simple's node field — this is the last standard-frame id
+available, and it is the only slot that cannot be typo'd upward.
+
+Flashed **fw 0.5.3 → 0.5.6** (the live-CAN-configuration patch: `MSG_CONFIG_ACCESS
+0x01C` / `MSG_CONFIG_COMMIT 0x01D`). The NVM `config_version` went `0x0004 →
+0x0005` across those revisions, so the flash invalidated the saved config as
+expected; it was backed up to
+`configs/motor13-367036483335-before-0.5.6-flash-2026-07-31.json` and restored +
+verified field-by-field afterwards (Kt **0.259**, encoder offset **14241**,
+R 0.240 Ω, L 0.604 mH, pp15, AS5047P mode 257 / CS7 / cpr 16384,
+`pre_calibrated`, brake 2.0 Ω). **Harmonic compensation restored ON** with the
+bench 18 t/s coefficients (cos1 −59.13 / sin1 13.80 / cos2 −1.10 / sin2 −0.54).
+**Motor thermistor is wired and enabled** on this board (GPIO4, 5k-divider
+coeffs) — reads 27.3 °C stable. That makes #13 one of the few robot joints with
+real winding protection.
+
+CAN verified across a power-cycle: `axis0` node **63** @ 100 ms heartbeat,
+250 kbaud, `axis1.config.can_heartbeat_rate_ms = 0` (the node-1 mute, applied in
+the same USB session per the standing rule), 0 errors, axis0 boots to IDLE.
+
+🔴 **Joint-side MT6701 on `axis1` is NOT responding — not yet usable.**
+Configured (mode 261, cpr 16384, CS 6, `pre_calibrated`) **in RAM only, not
+saved**, and it reads **100.0 % bad CRC over 120 353 samples** with
+`word0 = word1 = 0x0000`, `raw24 = 0x000000`, `count_in_cpr` pinned at 0,
+`error 0x80 ABS_SPI_COM_FAIL`. Per the triage rule, 100 % bad CRC = **wiring**
+(vs. CRC-OK-but-wandering = missing magnet, CRC-OK + zero spread = healthy).
+All-zero is rejected deliberately — an all-zero frame has a self-consistent CRC
+of 0, so [encoder.cpp:489](../Firmware/MotorControl/encoder.cpp#L489) guards it
+with `(raw24 != 0) && (crc_calc == crc_recv)`.
+
+The board side is proven good: the **`axis0` AS5047P shares the same SCK/MISO**
+and reads cleanly on CS 7 during the same session (count 882, spread 5, error 0),
+and the control loop really is clocking the MT6701 at ~8 kHz (120 k samples in
+15 s). So SPI, MISO and the firmware path all work — nothing is driving MISO
+while CS 6 is asserted. Check `DO → MISO`, `CLK → SCK`, `CSN → IO6`,
+`VCC → 3.3 V`, `GND → GND`.
+
+⚠️ Note `mt6701_debug_sample()` does **not** force a transfer — it only bumps
+`mt6701_debug_request_count_` and records the mode
+([encoder.cpp:51](../Firmware/MotorControl/encoder.cpp#L51)); the values read back
+are just the latest control-loop sample. Likewise
+`mt6701_debug_start_ok_count` / `start_fail_count` are declared but **never
+incremented** (always 0) — do not read them as evidence.
+
+**TODO on this joint:** fix MT6701 wiring → re-verify CRC + at-rest spread →
+`save_configuration()` → joint `direction`/`zero_offset` → split feedback
+(`load_encoder_axis=1`, `vel_encoder_axis=0`, `position_direction`) → measure
+travel → endstops → `pos_gain`.
