@@ -197,7 +197,9 @@ def main():
     p.add_argument("--cycles", type=int, default=15)
     p.add_argument("--rate", type=float, default=40.0)
     p.add_argument("--probe-rate", type=float, default=25.0)
-    p.add_argument("--iq-cap", type=float, default=6.0)
+    # 12 A, matching can_jog.py / can_goto.py -- 6 A aborts ordinary moves on the
+    # low-ratio (1:6) coxa and knee joints. See the can_jog.py --iq-cap note.
+    p.add_argument("--iq-cap", type=float, default=12.0)
     args = p.parse_args()
 
     port = args.port or find_bridge()

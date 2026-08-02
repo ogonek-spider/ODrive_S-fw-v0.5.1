@@ -22,7 +22,14 @@ SAFETY (these joints have cooked a motor before -- see the repo notes):
   * never arms by itself: `a` is explicit, and the setpoint is seeded from the
     measured position first, so arming can never jump the joint
   * the setpoint is SLEWED to the jog target at --rate, not stepped
-  * |Iq| over --iq-cap for a few samples in a row  -> auto IDLE
+  * |Iq| over --iq-cap for a few samples in a row  -> auto IDLE. This is a
+    TRANSIENT-current guard, not a thermal one: a LOW-RATIO (1:6) coxa or knee
+    legitimately draws 8-12 A to move a limb, because the gearbox does so little
+    of the work (contrast a 108:1 femur, which holds pose at ~0 A). Capping
+    below the real breakaway current just aborts every move and looks like a
+    fault. The winding is protected by --idle-timeout (continuous holding is
+    what kills these motors, not a 1 s peak) and, where fitted, by the motor
+    thermistor; the board's own current_lim is the hard backstop.
   * setpoint running away from the joint by more than --max-lag (a stall, e.g.
     jogging into a hard stop) -> jogging that way is blocked, 2x that -> IDLE
   * no keypress for --idle-timeout seconds while armed -> auto IDLE, because a
@@ -770,7 +777,10 @@ def main():
     p.add_argument("--node", type=int, default=None, help="skip the picker, jog this node")
     p.add_argument("--step", type=float, default=5.0, help="jog step, deg (default 5)")
     p.add_argument("--rate", type=float, default=10.0, help="slew rate, deg/s")
-    p.add_argument("--iq-cap", type=float, default=8.0, help="auto-IDLE above this |Iq|, A")
+    # 12 A, under the boards' current_lim of 15 A so the firmware stays the hard
+    # backstop. 8.0 was too low for the 1:6 joints: the leg6 knee (node 63) drew
+    # 8.7 A on an ordinary jog and got idled mid-move, which reads as a fault.
+    p.add_argument("--iq-cap", type=float, default=12.0, help="auto-IDLE above this |Iq|, A")
     p.add_argument("--max-lag", type=float, default=12.0,
                    help="block jogging when the joint falls this far behind, deg")
     p.add_argument("--idle-timeout", type=float, default=45.0,

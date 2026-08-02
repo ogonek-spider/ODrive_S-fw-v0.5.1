@@ -31,6 +31,20 @@ Step 7 writes the per-joint gains from JOINT_TUNING below. Gains only take
 effect once something else arms the axis, so writing them here is still
 motionless -- but see the position_direction warning in that table.
 
+    robot_joint_setup.py --motor 13 --position 6-3 --gains-only
+
+--gains-only is for a joint that is ALREADY brought up and only needs the
+retuned numbers from JOINT_TUNING pushed to it. It writes the controller config
+and nothing else: no flash, no backup/restore, no CAN node id, no encoder mode
+write, no zero_offset reseed, no reboot. Both axes must be IDLE (writing
+pos_gain/vel_gain to an ARMED axis changes the running loop and can kick the
+joint), and both encoders are checked read-only before the write, so an already
+faulted joint is reported rather than re-tuned. The same parameters can be
+pushed over CAN with no USB at all -- see can_config.py (fw 0.5.6+):
+
+    can_config.py --node 63 --set pos_gain=140 vel_gain=2.0 \
+        vel_int_gain=0.8 vel_limit=2.0 --save
+
 Position is the physical joint label `<leg>-<joint>`, leg 1..6, joint 1=coxa /
 2=femur / 3=knee, giving can_node_id = leg*10 + joint (see CAN_NODE_ID_MAP.md).
 
@@ -144,20 +158,31 @@ JOINT_TUNING = {
     3: dict(
         ratio=6.0,
         pos_gain=140.0,
-        vel_gain=_DEFAULT_VEL_GAIN,
-        vel_integrator_gain=_DEFAULT_VEL_INTEGRATOR_GAIN,
-        # A KNEE IS BACKDRIVABLE at 1:6, so vel_limit is a tuning parameter here,
-        # not a formality: measured on leg6, 0.6 t/s settles with no overshoot
-        # while 1.2 gives 78% and 2.0 gives 59%. The joint slams through its
-        # target at anything faster.
-        vel_limit=0.6,
+        # Same backdrivable recipe as the coxa above: DAMP WITH vel_gain and
+        # leave vel_limit high. The earlier knee tuning did the opposite
+        # (vel_limit 0.6, vel_gain at the ODrive default) and it settled fine
+        # going up but made the joint UNUSABLE over CAN -- see the vel_limit
+        # comment below.
+        vel_gain=2.0,
+        vel_integrator_gain=0.8,
+        # DO NOT lower this to damp the joint. At 0.6 t/s overspeed trips at
+        # 1.2 x 0.6 = 0.72 motor t/s = only 43 deg/s at the joint, so a gravity
+        # descent sets CONTROLLER_ERROR_OVERSPEED; Controller::update() then
+        # returns false, the loop misses its PWM deadline and the motor disarms
+        # with CONTROL_DEADLINE_MISSED. The host sees motor.error 0x10 and reads
+        # it as a board fault. 2.0 t/s = 143 deg/s of headroom instead.
+        vel_limit=2.0,
         verified=True,
         source="leg6 knee, motor #13 / node 63, USB step sweep 2026-08-01: ratio "
-               "measured 6.06:1 (motor 0.0905 turn per 5.38 deg of joint). At "
-               "vel_limit 0.6 / vel_i 0.3333, pos_gain 140 settled a +5 deg step "
-               "to -0.02 deg with 0% overshoot (5.3 s, peak 3.6 A); 60 could not "
-               "move the joint at all. leg1 knee runs 130 on a box that measured "
-               "5.6-7.4:1 VARYING WITH ANGLE, so re-check both ends of travel",
+               "measured 6.06:1 (motor 0.0905 turn per 5.38 deg of joint). "
+               "pos_gain 140 with vel_gain 2.0 / vel_i 0.8 / vel_limit 2.0 ran "
+               "+-5 and +-10 deg steps (both directions, incl. gravity descent) "
+               "with ZERO faults and <=0.4 deg residual, 1.7-5.4 s settle. The "
+               "previous vel_limit 0.6 / default-vel_gain tuning from the same "
+               "day faulted every descent with OVERSPEED + "
+               "CONTROL_DEADLINE_MISSED. pos_gain 60 could not move the joint at "
+               "all. leg1 knee runs 130 on a box that measured 5.6-7.4:1 VARYING "
+               "WITH ANGLE, so re-check both ends of travel",
     ),
 }
 
@@ -193,15 +218,19 @@ def parse_args():
                    help="axis0 CAN heartbeat period (default 100).")
     p.add_argument("--no-gains", action="store_true",
                    help="Leave the controller config alone: no split feedback, no gains.")
+    p.add_argument("--gains-only", action="store_true",
+                   help="Push ONLY the JOINT_TUNING gains + split feedback to an "
+                        "already-configured joint: no flash, no backup/restore, no "
+                        "CAN or encoder writes, no reboot. Requires both axes IDLE.")
     p.add_argument("--pos-gain", type=float,
                    help="Override the joint's predefined pos_gain (JOINT-side units).")
     p.add_argument("--gearbox-ratio", type=float,
                    help="This joint's real ratio; pos_gain is derived as "
                         f"{MOTOR_SIDE_POS_GAIN:.0f} x ratio unless --pos-gain is given.")
-    p.add_argument("--position-direction", type=int, choices=(1, -1),
-                   default=DEFAULT_POSITION_DIRECTION,
+    p.add_argument("--position-direction", type=int, choices=(1, -1), default=None,
                    help="Sign mapping motor velocity to joint position (default "
-                        f"{DEFAULT_POSITION_DIRECTION:+d}). VERIFY before arming.")
+                        f"{DEFAULT_POSITION_DIRECTION:+d}; with --gains-only, default "
+                        "is whatever the board already has). VERIFY before arming.")
     p.add_argument("--dry-run", action="store_true",
                    help="Back up and report, but do not flash, write or save.")
     return p.parse_args()
@@ -226,6 +255,22 @@ def parse_position(text):
 
 def hdr(text):
     print(f"\n{'=' * 70}\n{text}\n{'=' * 70}", flush=True)
+
+
+def make_stepper(total):
+    """Numbered section headers, e.g. '3/9  flash firmware'.
+
+    --gains-only runs a short subset of the sequence, so the numbering is
+    generated rather than hard-coded and always counts the steps that this run
+    actually performs.
+    """
+    state = {"n": 0}
+
+    def step(text):
+        state["n"] += 1
+        hdr(f"{state['n']}/{total}  {text}")
+
+    return step
 
 
 def disconnect():
@@ -343,6 +388,21 @@ def get_path(dev, dotted):
     for part in dotted.split("."):
         obj = getattr(obj, part)
     return obj
+
+
+def opt_path(dev, dotted, absent="n/a"):
+    """Read a property that OLDER FIRMWARE may not expose.
+
+    A board that has not been flashed yet is exactly the board this script is
+    pointed at, and it can be running anything -- stock 0.5.1 has no
+    `enable_harmonic_compensation`, no `position_direction`, no
+    `vel_encoder_axis`. Reading one for a status line must never abort the run
+    before the flash that would add it.
+    """
+    try:
+        return get_path(dev, dotted)
+    except AttributeError:
+        return absent
 
 
 def verify_against_json(dev, path):
@@ -552,18 +612,28 @@ def resolve_tuning(joint, args):
 
 def main():
     args = parse_args()
+    if args.gains_only and args.no_gains:
+        raise SystemExit("--gains-only and --no-gains contradict each other: "
+                         "the gains are the only thing --gains-only writes.")
     leg, joint, node = parse_position(args.position)
     joint_name = JOINT_NAMES[joint]
     today = datetime.datetime.now().strftime("%Y-%m-%d")
+    # gains-only runs: identify, encoders, gains, save, verify.
+    step = make_stepper(5 if args.gains_only else 9)
 
     hdr(f"motor #{args.motor}  ->  leg {leg} {joint_name} (position {args.position})"
         f"  ->  can_node_id {node}")
+    if args.gains_only:
+        print("  GAINS ONLY: the controller config is the ONLY thing written.")
+        print("  No flash, no backup/restore, no CAN node id, no encoder mode write,")
+        print("  no zero_offset reseed, no reboot. Joint zero, endstops and")
+        print("  commutation are left exactly as they are.")
     if args.dry_run:
         print("  DRY RUN: the board is only read. Nothing is flashed, written to")
         print("  the board, or saved. The config backup IS still written to disk.")
 
     # ---- 1. identify -------------------------------------------------------
-    hdr("1/9  identify board")
+    step("identify board")
     dev = connect(args.serial_number)
     serial = format(dev.serial_number, "x")
     want_fw = target_version()
@@ -574,91 +644,135 @@ def main():
     print(f"  vbus              {dev.vbus_voltage:.2f} V")
     print(f"  Kt {dev.axis0.motor.config.torque_constant:.4f}   "
           f"offset {dev.axis0.encoder.config.offset}   "
-          f"harmonic {dev.axis0.encoder.config.enable_harmonic_compensation}")
+          f"harmonic {opt_path(dev, 'axis0.encoder.config.enable_harmonic_compensation')}")
     if not dev.user_config_loaded:
         print("  !! user_config_loaded is False -- this board has NO usable saved config.")
         print("     Restoring a bench backup is the only way to get commutation back.")
 
-    do_flash = not args.skip_flash and (args.force_flash or fw_of(dev) != want_fw)
-    if not args.skip_flash:
-        check_build_fresh(args.elf)
-        if not do_flash:
-            print(f"  board already runs {'.'.join(map(str, want_fw))} -- skipping flash "
-                  "(use --force-flash to override)")
-
-    # ---- 2. backup ---------------------------------------------------------
-    hdr("2/9  back up configuration")
-    tag = "%s.%s.%s" % want_fw if want_fw else "flash"
-    backup = os.path.join(CONFIG_DIR,
-                          f"motor{args.motor}-{serial}-before-{tag}-flash-{today}.json")
-    if not dev.user_config_loaded:
-        print("  SKIPPED: no config is loaded, a backup would capture only defaults.")
-        backup = None
+    do_flash = False
+    backup = None
+    if args.gains_only:
+        # Writing pos_gain / vel_gain to an ARMED axis re-tunes the loop that is
+        # currently holding the limb up, which is motion. IDLE is also what
+        # save_configuration() needs, so refuse anything else outright.
+        states = (dev.axis0.current_state, dev.axis1.current_state)
+        print(f"  axis states       {states[0]}/{states[1]}   (1 = IDLE)")
+        if states != (1, 1):
+            raise SystemExit(
+                f"both axes must be IDLE to write gains; got axis0={states[0]}, "
+                f"axis1={states[1]}. Disarm the joint first -- re-tuning a live "
+                "position loop moves the leg.")
+        if not dev.user_config_loaded:
+            raise SystemExit(
+                "user_config_loaded is False: this board has no saved commutation "
+                "config, so it is not an already-configured joint. Run the full "
+                "sequence (without --gains-only) to restore its bench backup.")
+        # position_direction / vel_encoder_axis are local additions to this fork.
+        # Probe for them rather than comparing version numbers: on stock or
+        # pre-fork firmware the writes below would abort HALFWAY through the
+        # controller config, leaving a joint with new gains and old feedback.
+        missing = [f for f in ("vel_encoder_axis", "position_direction")
+                   if opt_path(dev, f"axis0.controller.config.{f}", None) is None]
+        if missing:
+            raise SystemExit(
+                f"this board runs firmware {'.'.join(map(str, fw_of(dev)))}, which has "
+                f"no controller.config.{' / '.join(missing)}. --gains-only cannot "
+                "configure split feedback on it -- run the full sequence to flash "
+                f"{'.'.join(map(str, want_fw)) if want_fw else 'the current build'} first.")
+        # The gains are joint-specific, so tuning the wrong board is the one
+        # mistake worth blocking: a femur gain of 2500 on a 1:6 coxa oscillates.
+        if dev.axis0.config.can_node_id != node:
+            raise SystemExit(
+                f"this board is can_node_id {dev.axis0.config.can_node_id}, but "
+                f"--position {args.position} means node {node}. Refusing to tune "
+                "the wrong joint -- check --serial-number / which board is plugged in.")
+        print(f"  can_node_id       {dev.axis0.config.can_node_id}   "
+              f"(matches --position {args.position})")
     else:
-        os.makedirs(CONFIG_DIR, exist_ok=True)
-        backup = unique_path(backup)
-        run_odrivetool(["backup-config", backup])
-        with open(backup) as f:
-            print(f"  saved {len(json.load(f))} fields -> {os.path.relpath(backup, REPO)}")
-        dev = connect(args.serial_number)
+        do_flash = not args.skip_flash and (args.force_flash or fw_of(dev) != want_fw)
+        if not args.skip_flash:
+            check_build_fresh(args.elf)
+            if not do_flash:
+                print(f"  board already runs {'.'.join(map(str, want_fw))} -- skipping "
+                      "flash (use --force-flash to override)")
 
-    # ---- 3. flash ----------------------------------------------------------
-    hdr("3/9  flash firmware")
-    if args.dry_run or not do_flash:
-        print("  skipped")
-    else:
-        print(f"  flashing {os.path.relpath(args.elf, REPO)} ...")
-        run_odrivetool(["dfu", args.elf])
-        dev = connect(args.serial_number)
-        got = fw_of(dev)
-        print(f"  board now reports {'.'.join(map(str, got))}")
-        if want_fw and got != want_fw:
-            raise SystemExit(f"flash verify FAILED: wanted {want_fw}, got {got}")
-        # The flash wipes NVM whenever config_version changed between versions.
-        print(f"  user_config_loaded {dev.user_config_loaded}"
-              f"{'  (NVM wiped by config_version bump, as expected)' if not dev.user_config_loaded else ''}")
+    if not args.gains_only:
+        # ---- 2. backup -----------------------------------------------------
+        step("back up configuration")
+        tag = "%s.%s.%s" % want_fw if want_fw else "flash"
+        backup = os.path.join(CONFIG_DIR,
+                              f"motor{args.motor}-{serial}-before-{tag}-flash-{today}.json")
+        if not dev.user_config_loaded:
+            print("  SKIPPED: no config is loaded, a backup would capture only defaults.")
+            backup = None
+        else:
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            backup = unique_path(backup)
+            run_odrivetool(["backup-config", backup])
+            with open(backup) as f:
+                print(f"  saved {len(json.load(f))} fields -> "
+                      f"{os.path.relpath(backup, REPO)}")
+            dev = connect(args.serial_number)
 
-    # ---- 4. restore --------------------------------------------------------
-    hdr("4/9  restore + verify configuration")
-    if args.dry_run or not do_flash or not backup:
-        print("  skipped")
-    else:
-        # Exit code is unreliable here: restore-config raises DeviceException
-        # ('ODrive did not reboot') AFTER successfully saving. Verify instead.
-        run_odrivetool(["restore-config", backup], check=False)
-        dev = connect(args.serial_number)
-        if not verify_against_json(dev, backup):
-            raise SystemExit("restore verify FAILED -- fix before continuing.")
-        print(f"  user_config_loaded {dev.user_config_loaded}")
-        print(f"  Kt {dev.axis0.motor.config.torque_constant:.4f}   "
-              f"offset {dev.axis0.encoder.config.offset}   "
-              f"harmonic {dev.axis0.encoder.config.enable_harmonic_compensation}")
+        # ---- 3. flash ------------------------------------------------------
+        step("flash firmware")
+        if args.dry_run or not do_flash:
+            print("  skipped")
+        else:
+            print(f"  flashing {os.path.relpath(args.elf, REPO)} ...")
+            run_odrivetool(["dfu", args.elf])
+            dev = connect(args.serial_number)
+            got = fw_of(dev)
+            print(f"  board now reports {'.'.join(map(str, got))}")
+            if want_fw and got != want_fw:
+                raise SystemExit(f"flash verify FAILED: wanted {want_fw}, got {got}")
+            # The flash wipes NVM whenever config_version changed between versions.
+            print(f"  user_config_loaded {dev.user_config_loaded}"
+                  f"{'  (NVM wiped by config_version bump, as expected)' if not dev.user_config_loaded else ''}")
 
-    # ---- 5. CAN ------------------------------------------------------------
-    hdr(f"5/9  CAN: node {node}, mute axis1")
-    if args.dry_run:
-        print(f"  would set axis0.config.can_node_id = {node}, "
-              f"axis1.config.can_heartbeat_rate_ms = 0")
-    else:
-        dev.axis0.config.can_node_id = node
-        dev.axis0.config.can_node_id_extended = False
-        dev.axis0.config.can_heartbeat_rate_ms = args.heartbeat_ms
-        # Every board's unused axis1 defaults to can_node_id=1 with a 100 ms
-        # heartbeat and the firmware TXes it unconditionally -- so every
-        # un-muted board on the bus claims node 1 at once. Mute it here, in the
-        # same USB session, because reaching a mounted board later means
-        # unplugging it. Muting does not change can_node_id: axis1 still ANSWERS
-        # RTR on node 1, so keep node 1 reserved and never poll it.
-        dev.axis1.config.can_heartbeat_rate_ms = 0
-        dev.axis1.config.can_node_id_extended = False
-    print(f"  axis0  node {dev.axis0.config.can_node_id}  "
-          f"heartbeat {dev.axis0.config.can_heartbeat_rate_ms} ms")
-    print(f"  axis1  node {dev.axis1.config.can_node_id}  "
-          f"heartbeat {dev.axis1.config.can_heartbeat_rate_ms} ms  <- 0 = muted")
-    print(f"  baud   {dev.can.config.baud_rate}")
+        # ---- 4. restore ----------------------------------------------------
+        step("restore + verify configuration")
+        if args.dry_run or not do_flash or not backup:
+            print("  skipped")
+        else:
+            # Exit code is unreliable here: restore-config raises DeviceException
+            # ('ODrive did not reboot') AFTER successfully saving. Verify instead.
+            run_odrivetool(["restore-config", backup], check=False)
+            dev = connect(args.serial_number)
+            if not verify_against_json(dev, backup):
+                raise SystemExit("restore verify FAILED -- fix before continuing.")
+            print(f"  user_config_loaded {dev.user_config_loaded}")
+            print(f"  Kt {dev.axis0.motor.config.torque_constant:.4f}   "
+                  f"offset {dev.axis0.encoder.config.offset}   "
+                  f"harmonic "
+                  f"{opt_path(dev, 'axis0.encoder.config.enable_harmonic_compensation')}")
+
+        # ---- 5. CAN --------------------------------------------------------
+        step(f"CAN: node {node}, mute axis1")
+        if args.dry_run:
+            print(f"  would set axis0.config.can_node_id = {node}, "
+                  f"axis1.config.can_heartbeat_rate_ms = 0")
+        else:
+            dev.axis0.config.can_node_id = node
+            dev.axis0.config.can_node_id_extended = False
+            dev.axis0.config.can_heartbeat_rate_ms = args.heartbeat_ms
+            # Every board's unused axis1 defaults to can_node_id=1 with a 100 ms
+            # heartbeat and the firmware TXes it unconditionally -- so every
+            # un-muted board on the bus claims node 1 at once. Mute it here, in
+            # the same USB session, because reaching a mounted board later means
+            # unplugging it. Muting does not change can_node_id: axis1 still
+            # ANSWERS RTR on node 1, so keep node 1 reserved and never poll it.
+            dev.axis1.config.can_heartbeat_rate_ms = 0
+            dev.axis1.config.can_node_id_extended = False
+        print(f"  axis0  node {dev.axis0.config.can_node_id}  "
+              f"heartbeat {dev.axis0.config.can_heartbeat_rate_ms} ms")
+        print(f"  axis1  node {dev.axis1.config.can_node_id}  "
+              f"heartbeat {dev.axis1.config.can_heartbeat_rate_ms} ms  <- 0 = muted")
+        print(f"  baud   {dev.can.config.baud_rate}")
 
     # ---- 6. encoders -------------------------------------------------------
-    hdr("6/9  encoders: axis0 commutation + axis1 joint (MT6701)")
+    step("encoders: axis0 commutation + axis1 joint (MT6701)"
+         + ("  [read-only]" if args.gains_only else ""))
     encoder_ok = None
 
     # 6a. axis0's absolute encoder is the COMMUTATION encoder. It is checked
@@ -673,7 +787,15 @@ def main():
         print("  axis1 skipped (--no-mt6701)")
     else:
         enc = dev.axis1.encoder
-        if not args.dry_run:
+        if args.gains_only:
+            # Never rewrite mode on an encoder that is already sampling. Taking a
+            # live abs-SPI encoder down to mode 0 and back up in RAM leaves
+            # ABS_SPI_COM_FAIL latched and the count frozen until a reboot -- and
+            # on a mounted joint that is exactly what must not happen. If the
+            # mode is wrong here, sample_mt6701 sees zero samples and the triage
+            # below reports it instead of "fixing" it.
+            print("  axis1 config left untouched (--gains-only), reading only")
+        elif not args.dry_run:
             enc.config.cpr = MT6701_CPR
             enc.config.abs_spi_cs_gpio_pin = MT6701_CS_PIN
             enc.config.enable_phase_interpolation = False
@@ -697,7 +819,14 @@ def main():
               f"error {hex(health['error'])}")
         encoder_ok, why = triage_mt6701(health, axis0_ok)
         print(f"  {'OK  ' if encoder_ok else 'FAIL'} {why}")
-        if encoder_ok and not args.dry_run:
+        if encoder_ok and args.gains_only:
+            # No reseed either: it rewrites zero_offset (with the same value, but
+            # still a write) and jumps pos_estimate by up to a turn. Harmless on
+            # a bring-up, not something to do behind the user's back on a joint
+            # whose zero and endstops are already set.
+            print(f"  pos_estimate {enc.pos_estimate:.4f} turn  (not re-seeded, "
+                  "--gains-only)")
+        elif encoder_ok and not args.dry_run:
             # Re-seed the LINEAR position accumulator from the live absolute
             # count. pos_estimate is seeded once at startup and can be a whole
             # turn out after dropped samples; writing zero_offset onto itself
@@ -706,7 +835,11 @@ def main():
             time.sleep(0.3)
             print(f"  pos_estimate re-seeded from the absolute count: "
                   f"{enc.pos_estimate:.4f} turn")
-        if not encoder_ok and not args.allow_bad_encoder:
+        if not encoder_ok and args.gains_only:
+            print("\n  The joint encoder is not usable, so the gains below are NOT")
+            print("  written: split feedback would aim the position loop at it.")
+            print("  axis1 is left exactly as found (mode not touched).")
+        elif not encoder_ok and not args.allow_bad_encoder:
             print("\n  axis1 will be left DISABLED (mode 0) rather than saved in a")
             print("  faulted state. The firmware, config restore and CAN setup below")
             print("  are still saved and complete. Fix the wiring, then re-run:")
@@ -743,8 +876,20 @@ def main():
         print("     this run and re-check afterwards.")
 
     # ---- 7. gains ----------------------------------------------------------
-    hdr(f"7/9  split feedback + position gains ({joint_name})")
+    step(f"split feedback + position gains ({joint_name})")
     gains_applied = None
+    if args.position_direction is None:
+        # Only --gains-only can inherit it: on a bring-up there is nothing on the
+        # board worth keeping, but on an already-tuned joint the saved sign was
+        # verified against the real assembly and silently replacing it with the
+        # +1 default is a runaway the next time the axis arms.
+        if args.gains_only:
+            args.position_direction = (dev.axis0.controller.config.position_direction
+                                       or DEFAULT_POSITION_DIRECTION)
+            print(f"  position_direction {args.position_direction:+d} kept from the "
+                  "board (pass --position-direction to change it)")
+        else:
+            args.position_direction = DEFAULT_POSITION_DIRECTION
     if args.no_gains:
         print("  skipped (--no-gains)")
     elif not axis0_ok:
@@ -821,9 +966,18 @@ def main():
                 gains_applied = tuning
 
     # ---- 8. save -----------------------------------------------------------
-    hdr("8/9  save to flash")
+    step("save to flash")
     if args.dry_run:
         print("  skipped (--dry-run)")
+    elif args.gains_only and gains_applied is None:
+        # Saving here would only re-commit what is already in NVM, and it would
+        # do it through the one operation on this board known to wedge an
+        # abs-SPI encoder. Nothing was written, so nothing is saved.
+        print("  NOT SAVED: nothing was written (see above). The board is exactly")
+        print("  as it was found.")
+        hdr(f"NOTHING WRITTEN: motor #{args.motor} -> leg {leg} {joint_name}, "
+            f"node {node}")
+        return 1
     else:
         try:
             dev.save_configuration()
@@ -834,8 +988,55 @@ def main():
                   "(expected -- USB transport resets); verifying after reboot")
         print("  saved")
 
-    # ---- 9. reboot + verify ------------------------------------------------
-    hdr("9/9  reboot and verify from NVM")
+    # ---- 9. verify ---------------------------------------------------------
+    if args.gains_only:
+        step("verify the saved gains")
+        if args.dry_run:
+            print("  skipped (--dry-run) -- nothing was written")
+            return 0
+        # Deliberately NO reboot. save_configuration() + reboot is exactly the
+        # sequence that has left one of the two absolute encoders wedged (only a
+        # power cycle recovers it), and on a mounted leg that costs a power cycle
+        # of the robot to undo. The written values are read back over a fresh
+        # connection; NVM itself is proven at the next ordinary power-up.
+        time.sleep(2)
+        dev = connect(args.serial_number, timeout=40)
+        c = dev.axis0.controller.config
+        checks = [
+            ("firmware", ".".join(map(str, fw_of(dev))), True),
+            ("user_config_loaded", dev.user_config_loaded, bool(dev.user_config_loaded)),
+            ("axis0 can_node_id", dev.axis0.config.can_node_id,
+             dev.axis0.config.can_node_id == node),
+            ("ctrl load/vel enc axis", f"{c.load_encoder_axis}/{c.vel_encoder_axis}",
+             (c.load_encoder_axis, c.vel_encoder_axis) == (1, 0)),
+            ("ctrl pos_gain", round(c.pos_gain, 1),
+             values_match(c.pos_gain, gains_applied["pos_gain"])),
+            ("ctrl vel_gain", round(c.vel_gain, 4),
+             values_match(c.vel_gain, gains_applied["vel_gain"])),
+            ("ctrl vel_integrator", round(c.vel_integrator_gain, 4),
+             values_match(c.vel_integrator_gain, gains_applied["vel_integrator_gain"])),
+            ("ctrl vel_limit", round(c.vel_limit, 3),
+             values_match(c.vel_limit, gains_applied["vel_limit"])),
+            ("ctrl position_direction", c.position_direction,
+             c.position_direction == gains_applied["position_direction"]),
+            ("axis0 state", dev.axis0.current_state, dev.axis0.current_state == 1),
+        ]
+        ok = True
+        for name, value, good in checks:
+            print(f"  {'ok  ' if good else 'FAIL'} {name:24s} {value}")
+            ok = ok and good
+        hdr(f"{'DONE' if ok else 'INCOMPLETE'} (gains only): motor #{args.motor} -> "
+            f"leg {leg} {joint_name}, node {node}")
+        print(f"  pos_gain {gains_applied['pos_gain']:.0f} / "
+              f"vel_gain {gains_applied['vel_gain']:.4f} / "
+              f"vel_i {gains_applied['vel_integrator_gain']:.4f} / "
+              f"vel_limit {gains_applied['vel_limit']:.1f} written and saved.")
+        print("  Joint zero, endstops, CAN node id and commutation were NOT touched.")
+        print("  The board was not rebooted, so the new gains are live in RAM and in")
+        print("  NVM -- confirm them once more after the next power-up.")
+        return 0 if ok else 1
+
+    step("reboot and verify from NVM")
     if args.dry_run:
         print("  skipped (--dry-run)")
         return 0

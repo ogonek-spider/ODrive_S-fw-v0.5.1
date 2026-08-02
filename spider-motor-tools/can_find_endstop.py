@@ -171,6 +171,9 @@ def main():
                    help="+1 or -1, in reported position units")
     p.add_argument("--step", type=float, default=5.0, help="setpoint step per iteration, deg")
     p.add_argument("--rate", type=float, default=10.0, help="slew rate deg/s")
+    # Deliberately kept at 6 A while can_jog/can_goto moved to 12: this tool
+    # drives INTO a hard mechanical stop on purpose, and the current rise IS the
+    # detection signal. A high cap here just means pushing harder into the stop.
     p.add_argument("--iq-cap", type=float, default=6.0)
     p.add_argument("--max-travel", type=float, default=180.0, help="give up after this much, deg")
     p.add_argument("--min-progress", type=float, default=0.25,

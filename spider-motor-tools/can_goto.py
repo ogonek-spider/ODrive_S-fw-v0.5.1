@@ -275,7 +275,10 @@ def main():
     p.add_argument("--node", type=int, required=True)
     p.add_argument("--target", type=float, default=0.0, help="target joint pos in turns")
     p.add_argument("--rate", type=float, default=10.0, help="ramp rate deg/s (output)")
-    p.add_argument("--iq-cap", type=float, default=6.0, help="abort if |Iq| exceeds this (A)")
+    # 12 A: same reasoning as can_jog.py -- a 1:6 coxa/knee needs 8-12 A just to
+    # move a limb, so a 6 A cap aborts legitimate moves. current_lim (15 A) is
+    # the hard backstop; the danger is CONTINUOUS current, not the peak.
+    p.add_argument("--iq-cap", type=float, default=12.0, help="abort if |Iq| exceeds this (A)")
     p.add_argument("--tol", type=float, default=1.5, help="arrival tolerance deg")
     p.add_argument("--hold", type=float, default=0.5, help="hold seconds after arrival")
     p.add_argument("--settle", type=float, default=4.0, help="max seconds to wait for convergence before judging tolerance")
