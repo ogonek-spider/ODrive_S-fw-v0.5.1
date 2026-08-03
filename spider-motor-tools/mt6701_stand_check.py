@@ -233,7 +233,11 @@ def main():
             ds, bad_pct, spread, spread / CTS_PER_DEG))
         print("   Module and magnet are both healthy.")
         if st["track_loss"]:
-            print("   NOTE: track_loss bit is set - check magnet distance/alignment.")
+            print("   NOTE: track_loss bit is set, but the field bits read 0b%s and the"
+                  % format(st["field"], "02b"))
+            print("   angle is steady - NOT the no-magnet case (that reads field 0b10")
+            print("   plus a wandering count). Seen permanently on a healthy module;")
+            print("   worth checking magnet distance/centring, not a fault by itself.")
 
     # ---- optional hand-turn check ----------------------------------------
     if args.spin:

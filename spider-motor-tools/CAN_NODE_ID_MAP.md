@@ -70,6 +70,52 @@ Bench board **serial `3482345a3034` (physical motor #8) → leg 1, bottom/knee �
 
 Bench board **serial `366f36533335` (physical motor #12) → leg 1, top = COXA → `can_node_id = 11`** (applied + saved 2026-07-26). Mounted in robot with **1:6 gearbox** (NOT the 34:1 used on knees; verify per-joint ratio). Motor **not** free to spin → no motor recal done; commutation from bench setup (offset 8399, Kt 0.260) — **verified working through the gearbox** (2026-07-26): smooth current, no faults, drives both directions. **Sign: +motor velocity → +joint** (toward max); `position_direction = +1`. + is the higher-friction direction (needs more current to break friction — fine within 15 A). Joint-side MT6701 on `axis1` configured (mode 261, cpr 16384, CS6, `pre_calibrated`), split feedback `load_encoder_axis=1`/`vel_encoder_axis=0`. Joint encoder healthy (CRC bad ~0.003%, no slip over a full hand-sweep). **Joint coordinate:** `direction=1`, `zero_offset=1660` (raw at min), away-from-min = positive. **Range:** min = 0° (raw 1660); physical hard max ≈ **+154°** (raw ~8677) the short way. NB: the coxa can also swing the *other* way past min (explored to −214°), so total mobility > 180° — keep operation on the one 0..+ arc. **OPERATING MAX CAPPED at +140°** (raw ~8032) — host must never command above this: the abs-encoder linear `pos_estimate` boots **1 turn low** above raw **8192** (= +143.6°); ≤140° boots clean everywhere (`pos_cpr` circular is always correct; only linear `pos_estimate` wraps). See [[abs-encoder-boot-wrap-halfturn-2026-07-26]]. **TODO:** `pos_gain`/tune when first driven closed-loop position; measured gearbox ratio came out garbage (~3×) from coarse endpoint sampling — do a clean synchronized-sweep ratio check to confirm 1:6.
 
+⚠️ **Leg 1 coxa: BOARD REPLACED 2026-08-03.** The board above (`366f36533335`)
+**failed** — its STM32F405 flash array degraded: erase still works, program and
+read do not, and the option bytes corrupted themselves into RDP Level 1. Proof
+was three reads of the same region over one SWD session — SRAM and system ROM
+bit-identical, main flash differing in 65–84 bytes per 4096. Not repairable
+without replacing the MCU. (Identity inferred: the dead board never enumerated
+on USB, so only its UID `003b0022 33355107 36343631` is certain.)
+
+Replacement is **serial `367f36503335` (ex-bench motor #17, ex-MT6701 test
+stand) → leg 1, top = COXA → `can_node_id = 11`** (applied + saved 2026-08-03,
+**fw 0.5.6**, config restored 325/325 fields verified, axis1 heartbeat muted).
+The motor itself is unchanged (physical #12, `Kt = 0.260`, written to this
+board), and so is the joint-side MT6701 and its coordinate frame.
+
+🔴 **The `direction = 1` written in the paragraph above is WRONG** — the joint
+frame is `direction = -1`, `zero_offset = 1660` (applied + saved 2026-08-03,
+matching the constant in `coxa_recalibrate.py`, whose "corrected on-robot"
+note never made it into this file). Derived from a hand sweep, not copied:
+the sweep covered raw 11541..15263, which with `zero_offset=1660` maps to
++142.9°..+61.2° under `-1` (inside the 0..154° travel) but to −142.9°..−61.2°
+under `+1` (entirely outside it). Verified after save: the joint reads 86.9°.
+
+Because the joint sign flipped, **`position_direction = +1` is now an
+UNVERIFIED assumption** — it ties motor-side velocity to joint-side position.
+Confirm it with a small guarded step before trusting the joint; the wrong sign
+is a runaway on the first arm.
+
+**Joint-side MT6701 reads correctly but flags a WEAK FIELD** (status nibble
+0x2, field bits 0b10, intermittently 0xa with track-loss): 0 bad CRC in 360k
+samples and 81.8° of hand sweep tracked faithfully, but rest noise is 0.48°
+peak-to-peak versus ~0.13° for a healthy one. `robot_joint_setup.py` fails it
+on the status nibble, so step 7 must be written by hand
+(`scratch/coxa_joint_frame_and_split.py`). Re-seat the magnet (diametric,
+centred over the die, 1–2 mm) when the leg is next accessible.
+
+**What does NOT carry over: commutation.** The AS5047P is ONBOARD, so
+`encoder.config.offset` and the harmonic fit describe the pair (that sensor +
+that rotor's magnet). This board's bench values (offset 11689, `c1=-66.8`,
+Kt 0.2797) belong to motor #17. They have been zeroed/replaced and
+`pre_calibrated` cleared on BOTH motor and encoder, so the axis **refuses to
+arm** until `ENCODER_OFFSET_CALIBRATION` is run against the coxa motor —
+`spider-motor-tools/scratch/coxa_recalibrate.py --calibrate --save` (moves the
+leg ~±16°). Still to do after that: joint zero (`--set-joint-zero`), split
+feedback `load_encoder_axis=1`/`vel_encoder_axis=0`, `position_direction=+1`,
+`pos_gain≈140`/`vel_gain 2.0`/`vel_i 0.8`/`vel_limit 2.0`, endstops.
+
 Bench board **serial `3680366e3335` (physical motor #4) → leg 1, middle = FEMUR → `can_node_id = 12`** (applied + saved 2026-07-26). Flashed **fw 0.5.4** (position-limit / min-max endstop patch) — first board to carry it; base config restored from backup (Kt 0.2435, offset 19181, mode 257/CS7). Mounted with **1:18 compound gearbox** (1:6 + 1:3 planetary; ratio re-confirmed on-robot ≈18.3:1 from motor-turns/output-turns). Motor **not** free to spin → no motor recal; commutation carried from bench. **Verified working through the gearbox** (2026-07-26): 3× full-range 0↔155° closed-loop cycles, ±0.8° tracking, no faults, motor turns repeatable (no slip). **Sign: +motor velocity → +joint (leg UP, away from ground)**; `position_direction = +1`. Joint-side MT6701 on `axis1` (mode 261, cpr 16384, CS6, `pre_calibrated`), split feedback `load_encoder_axis=1`/`vel_encoder_axis=0`. Joint encoder healthy (CRC-miss ~2.5% scattered under PWM EMI, no consecutive-miss fault, no slip). **Joint coordinate:** `direction=1`, `zero_offset=7887` (raw at ground) — **min = 0° = leg lowered to ground**; physical hard max ≈ **+165°** (raw ~15386). **Software endstops ENABLED:** `min_position=0`, `max_position=+160°` (`enable_position_limit=True`); clamp verified (commanded +200° held at ~157°). Tuned `pos_gain=140`, `vel_gain=0.2`, `vel_integrator_gain=0.8` (softer stalled on small up-steps against gravity+planetary stiction). **Boot-wrap:** ground rest (raw 7887) is below the raw-8192 boundary so it **boots clean at 0**; only a power-up while held raised (raw>8192) would boot 1 turn low — a dangling leg rests at ground, so this is safe. See [[abs-encoder-boot-wrap-halfturn-2026-07-26]].
 
 Board **serial `367b36793335` (physical motor #1) → leg 1, bottom/knee = KNEE →

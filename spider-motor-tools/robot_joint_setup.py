@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Bring a bench-characterized motor onto the robot: flash, CAN, joint encoder.
 
-    robot_joint_setup.py --motor 13 --position 6-3
+    robot_joint_setup.py --position 6-3
+    robot_joint_setup.py --position 6-3 --motor 13   # motor number is optional
 
 Runs the whole mount-on-robot sequence for one board, in the order that has to
 be respected:
@@ -9,19 +10,36 @@ be respected:
   1. identify board + preflight the build
   2. BACK UP config to configs/ (before anything can destroy it)
   3. flash the current build          (skipped if the board already runs it)
-  4. RESTORE config + verify field-by-field against the JSON
+  4. RESTORE config (only if the flash wiped it) + verify field-by-field
   5. CAN: can_node_id = leg*10 + joint, and MUTE axis1's heartbeat
   6. encoders: axis0 commutation health (FATAL if dead), then axis1 joint
      encoder (MT6701) config + health triage
   7. split feedback + the predefined position-loop gains for this joint
   8. save to flash
-  9. reboot and re-verify everything from NVM
+  9. re-verify everything over a fresh connection -- WITHOUT rebooting
+
+Step 9 deliberately does NOT reboot the board. save_configuration() followed by
+reboot() is the one sequence on this hardware that leaves an absolute encoder
+wedged: on a board running BOTH abs-SPI encoders (axis0 AS5047P + axis1 MT6701)
+one of them stops transacting altogether, and nothing but REMOVING POWER brings
+it back -- not clearing the error, not rewriting mode, not another reboot. On a
+mounted leg that costs a power cycle of the whole robot, so the tool ends with
+the board still running. save_configuration() sets user_config_loaded itself, so
+a successful save is still positively confirmed; NVM is proven for real at the
+next ordinary power-up.
 
 Order matters. The flash wipes NVM whenever config_version changed, so the
 backup must precede it and the restore must follow it. CAN and the joint
 encoder are configured AFTER the restore because the backup JSON carries the
 OLD can_node_id (usually 0) and a blank axis1 encoder -- restoring after
 setting them would silently undo both.
+
+config_version only changes when a config STRUCT changes, so most firmware
+bumps (0.5.6 -> 0.5.7 among them) leave the saved configuration intact. Step 4
+notices that, compares the live config against the backup, and SKIPS the
+restore when they already match -- a restore that is not needed is pure risk on
+a mounted joint (fw 0.5.6 dropped axis1's encoder mode on one board and left
+axis0 at defaults on another, both while reporting success).
 
 This tool NEVER arms the motor and never commands motion. It is safe to run on
 a mounted leg. It does not calibrate; commutation (offset/Kt) is carried over
@@ -31,7 +49,7 @@ Step 7 writes the per-joint gains from JOINT_TUNING below. Gains only take
 effect once something else arms the axis, so writing them here is still
 motionless -- but see the position_direction warning in that table.
 
-    robot_joint_setup.py --motor 13 --position 6-3 --gains-only
+    robot_joint_setup.py --position 6-3 --gains-only
 
 --gains-only is for a joint that is ALREADY brought up and only needs the
 retuned numbers from JOINT_TUNING pushed to it. It writes the controller config
@@ -55,6 +73,7 @@ import datetime
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import time
@@ -196,8 +215,18 @@ DEFAULT_POSITION_DIRECTION = 1
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--motor", required=True,
-                   help="Physical motor number, for file names and logging (e.g. 13).")
+    # OPTIONAL on purpose. The motor number labels nothing the script decides:
+    # the node id and gains come from --position, and the board's identity comes
+    # from its serial, which is in every backup file name anyway. It is also the
+    # weakest of the three identifiers -- motor numbers get REUSED between
+    # boards, and a board swap (leg1 coxa 2026-08-03: ex-bench board #17 now
+    # driving physical motor #12) makes "the motor number" outright ambiguous.
+    # Pass it when it helps a human find the file later; leave it out otherwise
+    # and the position is used instead.
+    p.add_argument("--motor",
+                   help="Physical motor number, for file names and logging only "
+                        "(e.g. 13). Optional: --position identifies the joint and "
+                        "the board serial identifies the board.")
     p.add_argument("--position", required=True,
                    help="Joint position <leg>-<joint>, e.g. 6-3 (leg 6, knee) -> node 63.")
     p.add_argument("--serial-number",
@@ -288,7 +317,7 @@ def disconnect():
     time.sleep(1.0)
 
 
-def run_odrivetool(cmd_args, check=True):
+def run_odrivetool(cmd_args, check=True, capture=False):
     """Release the device, run an odrivetool subcommand, and stay disconnected.
 
     stdin is closed: odrivetool's prompts (e.g. 'file exists, override?') would
@@ -296,7 +325,75 @@ def run_odrivetool(cmd_args, check=True):
     """
     disconnect()
     return subprocess.run([ODRIVETOOL] + cmd_args, cwd=REPO, check=check,
-                          stdin=subprocess.DEVNULL)
+                          stdin=subprocess.DEVNULL,
+                          stdout=subprocess.PIPE if capture else None,
+                          stderr=subprocess.STDOUT if capture else None,
+                          text=True if capture else None)
+
+
+# `odrivetool restore-config` ALWAYS ends a successful restore on this firmware
+# with a page of alarming output that means nothing is wrong:
+#
+#   * a handful of "Could not apply <x>: This property cannot be written to."
+#     lines -- anticogging's read-only mirrors and can.config.baud_rate are
+#     dumped by backup-config but are not writable, so they can never restore;
+#   * "Some of the configuration could not be restored." -- the summary of the
+#     above;
+#   * a full Python traceback ending in DeviceException 'ODrive did not reboot
+#     but returned None' -- raised by call_rebooting_function AFTER
+#     save_configuration() has already succeeded, because macOS does not always
+#     deliver the USB lost-device event.
+#
+# Printing all of that verbatim trains the operator to ignore this step's
+# output, which is exactly the step where a real mismatch must not be missed.
+# It is filtered to one summary line; anything unrecognised is still printed in
+# full, and the whole captured log is dumped if the field-by-field verify fails.
+_BENIGN_RESTORE_LINES = (
+    re.compile(r"^Could not apply .*\.anticogging\.\w+: This property cannot be written to\.$"),
+    re.compile(r"^Could not apply can\.config\.baud_rate: This property cannot be written to\.$"),
+    re.compile(r"^Some of the configuration could not be restored\.$"),
+    re.compile(r"^Waiting for ODrive\.\.\.$"),
+    re.compile(r"^Restoring configuration from .*\.\.\.$"),
+    re.compile(r"^\s*$"),
+)
+_BENIGN_RESTORE_EXC = re.compile(
+    r"^odrive\.exceptions\.DeviceException: ODrive did not reboot but returned None$")
+_EXC_LINE = re.compile(r"^[A-Za-z_][\w.]*(Error|Exception|Exit)\b.*$")
+
+
+def filter_restore_output(text):
+    """Split odrivetool's restore log into (benign_count, unexpected_lines)."""
+    benign, unexpected = 0, []
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
+        if line.startswith("Traceback (most recent call last):"):
+            block = [line]
+            i += 1
+            # A traceback runs until the first non-indented line, which is the
+            # exception itself. Judge the block by that line alone.
+            while i < len(lines) and (lines[i].startswith((" ", "\t"))
+                                      or not lines[i].strip()):
+                block.append(lines[i].rstrip())
+                i += 1
+            if i < len(lines):
+                block.append(lines[i].rstrip())
+                exc = lines[i].rstrip()
+                i += 1
+            else:
+                exc = ""
+            if _BENIGN_RESTORE_EXC.match(exc) or not _EXC_LINE.match(exc):
+                benign += 1
+            else:
+                unexpected.extend(block)
+            continue
+        if any(p.match(line) for p in _BENIGN_RESTORE_LINES):
+            benign += 1
+        else:
+            unexpected.append(line)
+        i += 1
+    return benign, unexpected
 
 
 def unique_path(path):
@@ -342,10 +439,75 @@ def target_version():
         return None
 
 
-def check_build_fresh(elf):
-    """Warn if any firmware source is newer than the .elf (stale build)."""
+def elf_version(elf):
+    """The firmware version compiled INTO the artifact, read from its symbols.
+
+    The mtime check below cannot see a version bump, and that is not a corner
+    case -- it is how every release goes: `version.txt` lives outside
+    `Firmware/`, and `autogen/` (where `version.c` is generated) is skipped by
+    the walk. So bumping the version without re-running ./dockerbuild.sh leaves
+    a stale .elf that the freshness check happily passes. The board then gets
+    the OLD firmware, and the only thing that notices is the post-flash verify
+    -- after an already-mounted joint has been reflashed with the wrong image.
+
+    Returns None if pyelftools is missing or the symbols cannot be located; the
+    caller treats that as "unknown", not as a failure.
+    """
+    try:
+        from elftools.elf.elffile import ELFFile
+    except ImportError:
+        return None
+    names = ("fw_version_major_", "fw_version_minor_", "fw_version_revision_")
+    found = {}
+    try:
+        with open(elf, "rb") as f:
+            e = ELFFile(f)
+            symtab = e.get_section_by_name(".symtab")
+            if symtab is None:
+                return None
+            for sym in symtab.iter_symbols():
+                if sym.name not in names:
+                    continue
+                shndx = sym.entry.st_shndx
+                if not isinstance(shndx, int):
+                    continue  # SHN_ABS/SHN_UNDEF: no section data to read
+                sec = e.get_section(shndx)
+                off = sym.entry.st_value - sec.header.sh_addr
+                data = sec.data()[off:off + max(1, sym.entry.st_size)]
+                if data:
+                    found[sym.name] = data[0]
+    except Exception:
+        return None
+    if len(found) != len(names):
+        return None
+    return tuple(found[n] for n in names)
+
+
+def check_build_fresh(elf, want_fw=None):
+    """Warn if any firmware source is newer than the .elf (stale build).
+
+    A version mismatch between the artifact and version.txt is FATAL rather
+    than a warning: flashing is destructive to the board's running firmware and
+    there is no reason to do it with an image that is known to be the wrong
+    build.
+    """
     if not os.path.exists(elf):
         raise SystemExit(f"firmware not found: {elf}\nBuild it with ./dockerbuild.sh build")
+    got = elf_version(elf)
+    rel = os.path.relpath(elf, REPO)
+    if got is None:
+        print(f"  !! could not read the firmware version out of {rel} "
+              "(pyelftools missing?)")
+        print("     Cannot confirm the artifact matches tools/odrive/version.txt.")
+    elif want_fw and got != want_fw:
+        raise SystemExit(
+            f"{rel} was built as firmware {'.'.join(map(str, got))}, but "
+            f"tools/odrive/version.txt says {'.'.join(map(str, want_fw))}.\n"
+            "The build is STALE -- a version bump alone does not touch anything "
+            "the freshness check below looks at.\nRun ./dockerbuild.sh build and "
+            "try again.")
+    elif got:
+        print(f"  {rel} is built as firmware {'.'.join(map(str, got))}")
     elf_mtime = os.path.getmtime(elf)
     newer = []
     for root, dirs, files in os.walk(os.path.join(REPO, "Firmware")):
@@ -451,12 +613,26 @@ def mt6701_status(raw24):
     """MT6701 SSI status nibble, bits [9:6] of the 24-bit frame.
 
     Layout per the reference driver (servo-firmware/lib/mt6701/mt6701.cpp):
-    bits 0-1 = field status, bit 2 = button pushed, bit 3 = TRACK LOSS. The
-    track-loss bit is the sensor itself reporting that it sees no magnetic
-    track -- far stronger evidence of a missing magnet than a wandering angle.
+    bits 0-1 = field status, bit 2 = button pushed, bit 3 = track loss.
+
+    Which bit means "no magnet" was got WRONG once, and it cost a joint: the
+    track-loss bit ALONE is not proof. Two measured data points --
+
+      no magnet (bench stand): nibble 0xa -> field 0b10, track_loss set,
+                               count wandering 900-11000 cts
+      healthy   (node 52)    : nibble 0x8 -> field 0b00, track_loss set,
+                               0 bad CRC in 104k samples, 6-count spread
+
+    -- differ in the FIELD bits, not in track_loss. Treating track_loss as the
+    verdict called a perfectly good module magnet-less, so the setup disabled
+    axis1 (mode 0) and saved it that way. Judge on `field_weak` + at-rest
+    spread; report track_loss only as a note.
     """
     st = (raw24 >> 6) & 0xF
-    return {"nibble": st, "field": st & 0x03,
+    field = st & 0x03
+    return {"nibble": st, "field": field,
+            # 0b10 is the code observed with no magnet in front of the die.
+            "field_weak": field == 0b10,
             "pushed": bool(st & 0x04), "track_loss": bool(st & 0x08)}
 
 
@@ -558,20 +734,29 @@ def triage_mt6701(health, axis0_ok):
         return False, (f"{pct:.1f}% of samples fail CRC. That is high even for PWM EMI "
                        "(~0.5% steady is normal on flying leads). Route the encoder "
                        "cable away from the phase wires and add a ferrite.")
-    # The sensor's own track-loss bit beats inferring 'no magnet' from a
-    # wandering angle: a magnet-less MT6701 still answers with a valid CRC.
-    if health["status"]["track_loss"]:
-        return False, (f"CRC is perfect but the MT6701 reports TRACK LOSS "
-                       f"(status nibble 0x{health['status']['nibble']:x}) -- it sees no "
-                       "magnetic track. Fit the diametric magnet centred over the die, "
-                       "1-2 mm away.")
+    # 'No magnet' is a magnetic-FIELD verdict, so read the field bits and the
+    # at-rest spread -- NOT track_loss on its own (see mt6701_status). A
+    # magnet-less MT6701 still answers with a valid CRC, so CRC cannot decide it.
+    st = health["status"]
+    if st["field_weak"]:
+        return False, (f"CRC is perfect but the MT6701 reports a WEAK/ABSENT magnetic "
+                       f"field (status nibble 0x{st['nibble']:x}, field bits 0b10"
+                       f"{', track loss' if st['track_loss'] else ''}). Fit the "
+                       "diametric magnet centred over the die, 1-2 mm away.")
     if spread > 50:
         return False, (f"CRC is fine but the count wanders {spread} counts at rest -- "
-                       "the magnet is loose, off-centre, or too far from the chip.")
+                       "the magnet is loose, off-centre, or too far from the chip."
+                       + (" The track-loss bit is set too, which agrees."
+                          if st["track_loss"] else ""))
     verdict = (f"HEALTHY ({pct:.4f}% bad CRC, {spread}-count spread at rest, "
-               f"status 0x{health['status']['nibble']:x}).")
+               f"status 0x{st['nibble']:x}).")
     if pct > 1.0:
         verdict += " CRC misses are scattered PWM EMI, not consecutive -- tolerated."
+    if st["track_loss"]:
+        verdict += ("\n       NOTE: track_loss is set while the field reads normal and "
+                    "the angle is steady.\n       Not a fault by itself (node 52 reads "
+                    "this way permanently), but check magnet\n       distance/centring "
+                    "before trusting the joint angle under fast motion.")
     return True, verdict
 
 
@@ -618,10 +803,14 @@ def main():
     leg, joint, node = parse_position(args.position)
     joint_name = JOINT_NAMES[joint]
     today = datetime.datetime.now().strftime("%Y-%m-%d")
+    # --motor is optional; without it the joint labels the run and the files.
+    who = f"motor #{args.motor} -> " if args.motor else ""
+    file_label = f"motor{args.motor}" if args.motor else f"leg{leg}-{joint_name}"
+    motor_arg = f"--motor {args.motor} " if args.motor else ""
     # gains-only runs: identify, encoders, gains, save, verify.
     step = make_stepper(5 if args.gains_only else 9)
 
-    hdr(f"motor #{args.motor}  ->  leg {leg} {joint_name} (position {args.position})"
+    hdr(f"{who}leg {leg} {joint_name} (position {args.position})"
         f"  ->  can_node_id {node}")
     if args.gains_only:
         print("  GAINS ONLY: the controller config is the ONLY thing written.")
@@ -691,7 +880,7 @@ def main():
     else:
         do_flash = not args.skip_flash and (args.force_flash or fw_of(dev) != want_fw)
         if not args.skip_flash:
-            check_build_fresh(args.elf)
+            check_build_fresh(args.elf, want_fw)
             if not do_flash:
                 print(f"  board already runs {'.'.join(map(str, want_fw))} -- skipping "
                       "flash (use --force-flash to override)")
@@ -701,7 +890,7 @@ def main():
         step("back up configuration")
         tag = "%s.%s.%s" % want_fw if want_fw else "flash"
         backup = os.path.join(CONFIG_DIR,
-                              f"motor{args.motor}-{serial}-before-{tag}-flash-{today}.json")
+                              f"{file_label}-{serial}-before-{tag}-flash-{today}.json")
         if not dev.user_config_loaded:
             print("  SKIPPED: no config is loaded, a backup would capture only defaults.")
             backup = None
@@ -726,21 +915,59 @@ def main():
             print(f"  board now reports {'.'.join(map(str, got))}")
             if want_fw and got != want_fw:
                 raise SystemExit(f"flash verify FAILED: wanted {want_fw}, got {got}")
-            # The flash wipes NVM whenever config_version changed between versions.
+            # The flash wipes NVM only when config_version in nvm_config.hpp
+            # changed, i.e. when a config STRUCT changed -- NOT on every version
+            # bump. 0.5.6 -> 0.5.7 (CAN reset disabled) touches no struct, so
+            # the saved configuration stays valid and loads straight back. Both
+            # outcomes are normal here; step 4 decides what to do about it.
             print(f"  user_config_loaded {dev.user_config_loaded}"
-                  f"{'  (NVM wiped by config_version bump, as expected)' if not dev.user_config_loaded else ''}")
+                  f"{'  (NVM wiped -- config_version changed)' if not dev.user_config_loaded else '  (NVM survived -- config_version unchanged)'}")
 
         # ---- 4. restore ----------------------------------------------------
         step("restore + verify configuration")
         if args.dry_run or not do_flash or not backup:
             print("  skipped")
         else:
-            # Exit code is unreliable here: restore-config raises DeviceException
-            # ('ODrive did not reboot') AFTER successfully saving. Verify instead.
-            run_odrivetool(["restore-config", backup], check=False)
-            dev = connect(args.serial_number)
-            if not verify_against_json(dev, backup):
-                raise SystemExit("restore verify FAILED -- fix before continuing.")
+            # A restore is not free, and on fw 0.5.6 it was twice destructive:
+            # one board came back with axis1.encoder.config.mode dropped (so the
+            # joint MT6701 was never clocked while load_encoder_axis=1), another
+            # with axis0 sitting at DEFAULTS -- both with user_config_loaded
+            # still True, i.e. looking fine. So when the flash did not wipe NVM
+            # (config_version unchanged, which is the case for 0.5.6 -> 0.5.7)
+            # and the board already matches its own pre-flash backup
+            # field-for-field, there is nothing to restore. Rewriting it would
+            # only re-roll those dice on a joint that is already bolted to the
+            # robot.
+            need_restore = True
+            if dev.user_config_loaded:
+                print("  NVM survived the flash -- checking whether a restore is "
+                      "needed at all")
+                if verify_against_json(dev, backup):
+                    need_restore = False
+            if not need_restore:
+                print("  board already matches its pre-flash backup field-for-field "
+                      "-- restore SKIPPED")
+                print("  (nothing was wiped, so rewriting the config would only add "
+                      "risk).")
+            else:
+                # Exit code is unreliable here: restore-config raises DeviceException
+                # ('ODrive did not reboot') AFTER successfully saving. Verify instead.
+                proc = run_odrivetool(["restore-config", backup], check=False,
+                                      capture=True)
+                log = proc.stdout or ""
+                benign, unexpected = filter_restore_output(log)
+                print(f"  odrivetool restore: {benign} known-benign line(s) suppressed "
+                      "(read-only anticogging/baud_rate props, and the post-save")
+                print("  'ODrive did not reboot' exception -- the save had already "
+                      "succeeded). Truth is the compare below.")
+                for line in unexpected:
+                    print(f"    odrivetool| {line}")
+                dev = connect(args.serial_number)
+                if not verify_against_json(dev, backup):
+                    print("\n  --- full odrivetool restore log ---")
+                    for line in log.splitlines():
+                        print(f"    {line}")
+                    raise SystemExit("restore verify FAILED -- fix before continuing.")
             print(f"  user_config_loaded {dev.user_config_loaded}")
             print(f"  Kt {dev.axis0.motor.config.torque_constant:.4f}   "
                   f"offset {dev.axis0.encoder.config.offset}   "
@@ -799,11 +1026,23 @@ def main():
             enc.config.cpr = MT6701_CPR
             enc.config.abs_spi_cs_gpio_pin = MT6701_CS_PIN
             enc.config.enable_phase_interpolation = False
-            enc.config.pre_calibrated = True
             enc.error = 0
-            # mode LAST: its setter re-inits the CS pin + SPI and starts sampling.
+            # mode BEFORE pre_calibrated, and both before the readback below.
+            # Encoder::check_pre_calibrated() clears the flag whenever the LIVE
+            # mode_ is incremental-without-index, so writing pre_calibrated
+            # first is silently rejected on a board whose axis1 is still at the
+            # default mode 0 -- the write "succeeds", the read-back is False,
+            # and nothing is raised. Setting mode first makes mode_ absolute, so
+            # the flag sticks.
             enc.config.mode = MT6701_MODE
             time.sleep(1.0)
+            enc.config.pre_calibrated = True
+            time.sleep(0.2)
+            if not enc.config.pre_calibrated:
+                print("  !! pre_calibrated did NOT stick (silently rejected). The "
+                      "encoder will not be\n     ready at boot -- let this run save, "
+                      "then POWER-CYCLE (not reboot: save+reboot\n     wedges abs-SPI), "
+                      "set it again and save.")
         print(f"  axis1 MT6701: mode {enc.config.mode}  cpr {enc.config.cpr}  "
               f"CS {enc.config.abs_spi_cs_gpio_pin}")
 
@@ -839,14 +1078,43 @@ def main():
             print("\n  The joint encoder is not usable, so the gains below are NOT")
             print("  written: split feedback would aim the position loop at it.")
             print("  axis1 is left exactly as found (mode not touched).")
+            # --gains-only promises not to write encoder/controller config, so
+            # this only warns -- but silence here would hide a live runaway on
+            # an already-mounted joint.
+            if dev.axis0.controller.config.load_encoder_axis == 1:
+                print("  !! DANGER: load_encoder_axis is ALREADY 1 on this board, so the")
+                print("     position loop is aimed at this unusable encoder RIGHT NOW.")
+                print("     Do not arm this joint. Fix the encoder, or set")
+                print("     axis0.controller.config.load_encoder_axis = 0 and save.")
         elif not encoder_ok and not args.allow_bad_encoder:
             print("\n  axis1 will be left DISABLED (mode 0) rather than saved in a")
             print("  faulted state. The firmware, config restore and CAN setup below")
             print("  are still saved and complete. Fix the wiring, then re-run:")
-            print(f"    {os.path.relpath(__file__, REPO)} --motor {args.motor} "
+            print(f"    {os.path.relpath(__file__, REPO)} {motor_arg}"
                   f"--position {args.position} --skip-flash")
             if not args.dry_run:
                 enc.config.mode = 0
+                # Disabling axis1 is only half the job. The config restored in
+                # step 4 comes from this board's PREVIOUS joint, which was very
+                # likely split-feedback -- so load_encoder_axis is already 1 and
+                # now points at an encoder that reports a FROZEN position. Arm
+                # that in position mode and the error never shrinks: the motor
+                # drives until something breaks. Point the loop back at axis0
+                # (stock, non-split) so the saved config is merely untuned
+                # rather than a runaway waiting for the next operator.
+                c = dev.axis0.controller.config
+                if c.load_encoder_axis != 0 or c.vel_encoder_axis != 0:
+                    was = (c.load_encoder_axis, c.vel_encoder_axis)
+                    c.load_encoder_axis = 0
+                    c.vel_encoder_axis = 0
+                    time.sleep(0.2)
+                    print(f"  !! split feedback was load/vel={was[0]}/{was[1]} "
+                          "(restored from this board's previous joint) and would")
+                    print("     have aimed the position loop at the now-disabled "
+                          "axis1 -- a frozen")
+                    print("     position estimate is a RUNAWAY on the next arm. Reset "
+                          f"to load/vel={c.load_encoder_axis}/{c.vel_encoder_axis} "
+                          "(motor-side).")
 
     if not axis0_ok:
         print("\n  !! axis0's COMMUTATION encoder is not delivering data. This joint")
@@ -975,8 +1243,7 @@ def main():
         # abs-SPI encoder. Nothing was written, so nothing is saved.
         print("  NOT SAVED: nothing was written (see above). The board is exactly")
         print("  as it was found.")
-        hdr(f"NOTHING WRITTEN: motor #{args.motor} -> leg {leg} {joint_name}, "
-            f"node {node}")
+        hdr(f"NOTHING WRITTEN: {who}leg {leg} {joint_name}, node {node}")
         return 1
     else:
         try:
@@ -985,7 +1252,7 @@ def main():
             # save_configuration resets the USB transport; the exception is
             # normal on this firmware and does not mean the save failed.
             print(f"  save_configuration raised {type(exc).__name__} "
-                  "(expected -- USB transport resets); verifying after reboot")
+                  "(expected -- USB transport resets); verifying below")
         print("  saved")
 
     # ---- 9. verify ---------------------------------------------------------
@@ -1025,7 +1292,7 @@ def main():
         for name, value, good in checks:
             print(f"  {'ok  ' if good else 'FAIL'} {name:24s} {value}")
             ok = ok and good
-        hdr(f"{'DONE' if ok else 'INCOMPLETE'} (gains only): motor #{args.motor} -> "
+        hdr(f"{'DONE' if ok else 'INCOMPLETE'} (gains only): {who}"
             f"leg {leg} {joint_name}, node {node}")
         print(f"  pos_gain {gains_applied['pos_gain']:.0f} / "
               f"vel_gain {gains_applied['vel_gain']:.4f} / "
@@ -1036,36 +1303,42 @@ def main():
         print("  NVM -- confirm them once more after the next power-up.")
         return 0 if ok else 1
 
-    step("reboot and verify from NVM")
+    step("verify over a fresh connection (no reboot)")
     if args.dry_run:
         print("  skipped (--dry-run)")
         return 0
-    try:
-        dev.reboot()
-    except Exception:
-        pass  # reboot always drops the USB link mid-call
-    time.sleep(4)
+    # Deliberately NO reboot. save_configuration() + reboot() is exactly the
+    # sequence that has left one of the two absolute encoders wedged on this
+    # board (see the axis0 diagnosis below) and only removing power recovers it
+    # -- on a mounted leg that means power-cycling the robot. save_configuration
+    # sets user_config_loaded_ itself, so the checks below still prove the save
+    # went through; what they cannot prove is that the config RELOADS cleanly,
+    # and that is verified at the next ordinary power-up.
+    print("  the board is NOT rebooted -- save + reboot is what wedges an "
+          "abs-SPI encoder")
+    time.sleep(2)
     dev = connect(args.serial_number, timeout=40)
 
     ok = True
     fw = fw_of(dev)
 
     # Any encoder error -- including the benign ABS_SPI_NOT_READY transient that
-    # a shared SPI bus throws at boot -- also latches AXIS_ERROR_ENCODER_FAILED
-    # (0x100) on the axis. Judging the raw boot errors therefore false-fails a
-    # healthy board. Report what booted, then clear once and judge what comes
-    # BACK, with axis0 judged on whether it DELIVERS data.
-    boot_errors = (dev.axis0.error, dev.axis0.motor.error,
-                   dev.axis0.encoder.error, dev.axis0.controller.error)
-    print(f"  at boot: axis/motor/encoder/controller errors "
-          f"{'/'.join(hex(e) for e in boot_errors)} (cleared, re-checking below)")
+    # a shared SPI bus throws at startup -- also latches AXIS_ERROR_ENCODER_FAILED
+    # (0x100) on the axis, and the writes in steps 5-7 leave their own transients
+    # behind. Judging those raw errors would false-fail a healthy board. Report
+    # what is latched, then clear once and judge what comes BACK, with axis0
+    # judged on whether it DELIVERS data.
+    latched_errors = (dev.axis0.error, dev.axis0.motor.error,
+                      dev.axis0.encoder.error, dev.axis0.controller.error)
+    print(f"  latched: axis/motor/encoder/controller errors "
+          f"{'/'.join(hex(e) for e in latched_errors)} (cleared, re-checking below)")
     for ax in (dev.axis0, dev.axis1):
         ax.encoder.error = 0
         ax.motor.error = 0
         ax.controller.error = 0
         ax.error = 0
-    a0_boot_ok, a0_boot_line, _ = check_commutation_encoder(dev.axis0.encoder)
-    print(a0_boot_line)
+    a0_post_ok, a0_post_line, _ = check_commutation_encoder(dev.axis0.encoder)
+    print(a0_post_line)
     time.sleep(1.5)
     # ABS_SPI_NOT_READY alone is tolerated; ABS_SPI_COM_FAIL and every other
     # error is not.
@@ -1073,8 +1346,8 @@ def main():
     residual = (dev.axis0.motor.error, enc_err, dev.axis0.controller.error)
 
     checks = [
-        ("axis0 commutation enc", "delivering" if a0_boot_ok else "NOT DELIVERING",
-         a0_boot_ok),
+        ("axis0 commutation enc", "delivering" if a0_post_ok else "NOT DELIVERING",
+         a0_post_ok),
         ("firmware", ".".join(map(str, fw)), fw == want_fw if want_fw else True),
         ("user_config_loaded", dev.user_config_loaded, bool(dev.user_config_loaded)),
         ("axis0 can_node_id", dev.axis0.config.can_node_id,
@@ -1094,9 +1367,24 @@ def main():
         ("residual errors", "motor/encoder/controller "
          + "/".join(hex(e) for e in residual), not any(residual)),
     ]
+    # The joint encoder's saved mode is checked even when the encoder failed,
+    # because "mode 0" is the state that has to be READ BACK from NVM to be
+    # believed. Node 52 was found months later with mode 0 and every other
+    # axis1 field restored and plausible -- silently skipping this check is how
+    # a disabled encoder gets mistaken for a configured one.
+    if not args.no_mt6701 and encoder_ok is False:
+        mode_now = dev.axis1.encoder.config.mode
+        checks.append(("axis1 encoder mode",
+                       f"{mode_now} (DELIBERATELY DISABLED - encoder failed step 6)",
+                       mode_now == 0))
+        c = dev.axis0.controller.config
+        checks.append(("split feedback off", f"load/vel={c.load_encoder_axis}/"
+                       f"{c.vel_encoder_axis}", c.load_encoder_axis == 0))
     if not args.no_mt6701 and encoder_ok:
         checks.append(("axis1 encoder mode", dev.axis1.encoder.config.mode,
                        dev.axis1.encoder.config.mode == MT6701_MODE))
+        checks.append(("axis1 pre_calibrated", dev.axis1.encoder.config.pre_calibrated,
+                       bool(dev.axis1.encoder.config.pre_calibrated)))
         a1 = dev.axis1.encoder
         a1_counts = sample_counts(a1)
         checks.append(("axis1 encoder", f"count {a1_counts[-1]}, spread "
@@ -1128,19 +1416,23 @@ def main():
         print(f"  {'ok  ' if good else 'FAIL'} {name:24s} {value}")
         ok = ok and good
 
-    hdr(f"{'DONE' if ok else 'INCOMPLETE'}: motor #{args.motor} -> leg {leg} "
+    hdr(f"{'DONE' if ok else 'INCOMPLETE'}: {who}leg {leg} "
         f"{joint_name}, node {node}")
-    if not a0_boot_ok:
-        print("  axis0 COMMUTATION encoder is not reading after the reboot -- this "
+    if not a0_post_ok:
+        print("  axis0 COMMUTATION encoder is not reading after the save -- this "
               "joint cannot")
         print("  be armed. POWER-CYCLE the board and re-run with --skip-flash before")
-        print("  suspecting wiring: a soft reboot does not clear an abs-SPI latch-up.")
+        print("  suspecting wiring: nothing short of removing power clears an "
+              "abs-SPI latch-up.")
     if not args.no_mt6701 and encoder_ok is False:
         print("  axis1 joint encoder is NOT configured -- fix wiring and re-run "
               "with --skip-flash.")
+    print("  The board was NOT rebooted (save + reboot is what wedges an abs-SPI")
+    print("  encoder). Everything above is live in RAM and saved in NVM; confirm it")
+    print("  once more after the next ordinary power-up.")
     print(f"  Record it in {os.path.relpath(os.path.join(HERE, 'CAN_NODE_ID_MAP.md'), REPO)}:")
     print(f"    | {leg} | {joint} | {joint_name:11s} | **{node}** | "
-          f"{args.motor} | {serial} |")
+          f"{args.motor if args.motor else '?'} | {serial} |")
     if gains_applied:
         print(f"  Position loop is configured: split feedback + pos_gain "
               f"{gains_applied['pos_gain']:.0f} "
