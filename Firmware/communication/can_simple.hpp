@@ -28,7 +28,9 @@ class CANSimple {
         MSG_SET_TRAJ_INERTIA,
         MSG_GET_IQ,
         MSG_GET_SENSORLESS_ESTIMATES,
-        MSG_RESET_ODRIVE,
+        MSG_RESET_ODRIVE,  // 0x016: IGNORED here -- reboot only via MSG_CONFIG_COMMIT.
+                           // The id stays in the enum so the ones after it keep
+                           // their numbers; the handler is a no-op on purpose.
         MSG_GET_VBUS_VOLTAGE,
         MSG_CLEAR_ERRORS,  // 0x018
 

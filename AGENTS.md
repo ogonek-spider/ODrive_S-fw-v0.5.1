@@ -201,6 +201,29 @@ Touched files: `Firmware/communication/can_simple.hpp`, `can_simple.cpp`,
 Host side: `spider-motor-tools/can_config.py` (CLI) and the `A` / `S` keys in
 `spider-motor-tools/can_jog.py`.
 
+### `MSG_RESET_ODRIVE` (0x016) is ignored (fw **0.5.7**)
+
+Stock CAN Simple reboots the board from a bare `NVIC_SystemReset()` on one frame
+— data or RTR, no magic key, no IDLE check. Two reasons that is unsafe on this
+robot:
+
+- every board's unused `axis1` still **answers** on node id 1 (its heartbeat is
+  muted, but the RX filter is not), so a single frame to node 1 resets the
+  **whole fleet** at once;
+- a reset landing inside `save_configuration()` leaves NVM mid-transaction;
+  `load_configuration()` then falls back to full defaults, which puts
+  `can_node_id` back to the axis index (0 and 1) and drops motor/encoder
+  calibration, `load_encoder_axis` and the endstops with it.
+
+The handler is now a deliberate no-op. The id stays in the enum so every
+command after it keeps its number. The sanctioned reboot is
+`MSG_CONFIG_COMMIT` + `CONFIG_ACTION_REBOOT` (magic-key gated, and it cannot
+race the deferred save because both are serialised through the same thread).
+No config struct changed → `config_version` **not** bumped, so a saved
+configuration survives the 0.5.6 → 0.5.7 flash.
+
+Touched files: `Firmware/communication/can_simple.cpp`, `can_simple.hpp`.
+
 ### Consecutive-miss `ABS_SPI_COM_FAIL` detection
 
 `Firmware/MotorControl/encoder.cpp` trips `ERROR_ABS_SPI_COM_FAIL` for the
@@ -400,7 +423,7 @@ Holding current vs joint angle: ~2.8 A near horizontal (max gravity moment),
 Bump the firmware version **every time firmware source changes** so the version
 reported by a flashed board tells you which build is on it.
 
-- **Source of truth:** `tools/odrive/version.txt` (currently `fw-v0.5.5-mt6701`).
+- **Source of truth:** `tools/odrive/version.txt` (currently `fw-v0.5.7-mt6701`).
   There are no git tags, so `git describe` returns a bare commit hash that fails
   the `vMAJOR.MINOR.REVISION` regex; `version.py` then falls back to
   `version.txt`. The trailing `-mt6701` only sets the "unreleased" flag — **only

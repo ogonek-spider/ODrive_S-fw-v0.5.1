@@ -111,7 +111,21 @@ void CANSimple::handle_can_message(can_Message_t& msg) {
                 get_sensorless_estimates_callback(axis, msg);
                 break;
             case MSG_RESET_ODRIVE:
-                NVIC_SystemReset();
+                // LOCAL CHANGE: ignored on purpose -- this used to be a bare
+                // NVIC_SystemReset(). One data OR RTR frame, no magic key, no
+                // IDLE check, and the board reboots. That is unsafe here for
+                // two reasons:
+                //   * every board's unused axis1 still answers to node id 1
+                //     (its heartbeat is muted, but the RX filter is not), so a
+                //     single frame to node 1 resets the WHOLE fleet at once;
+                //   * a reset that lands inside save_configuration() leaves the
+                //     NVM mid-transaction, and load_configuration() then falls
+                //     back to full defaults -- which sets can_node_id back to
+                //     the axis index (0 and 1) and drops motor/encoder
+                //     calibration, load_encoder_axis and the endstops with it.
+                // The sanctioned reboot is MSG_CONFIG_COMMIT with
+                // CONFIG_ACTION_REBOOT: magic-key gated, and it cannot race the
+                // deferred save because both are serialised through this thread.
                 break;
             case MSG_GET_VBUS_VOLTAGE:
                 get_vbus_voltage_callback(axis, msg);
