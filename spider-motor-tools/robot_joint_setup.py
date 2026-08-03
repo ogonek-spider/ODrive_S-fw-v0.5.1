@@ -17,16 +17,29 @@ be respected:
   7. split feedback + the predefined position-loop gains for this joint
   8. save to flash
   9. re-verify everything over a fresh connection -- WITHOUT rebooting
+ 10. ask the operator to POWER-CYCLE, then re-read the config from NVM
 
 Step 9 deliberately does NOT reboot the board. save_configuration() followed by
 reboot() is the one sequence on this hardware that leaves an absolute encoder
 wedged: on a board running BOTH abs-SPI encoders (axis0 AS5047P + axis1 MT6701)
 one of them stops transacting altogether, and nothing but REMOVING POWER brings
-it back -- not clearing the error, not rewriting mode, not another reboot. On a
-mounted leg that costs a power cycle of the whole robot, so the tool ends with
-the board still running. save_configuration() sets user_config_loaded itself, so
-a successful save is still positively confirmed; NVM is proven for real at the
-next ordinary power-up.
+it back -- not clearing the error, not rewriting mode, not another reboot.
+
+Step 10 exists because step 9 CANNOT prove the save. save_configuration() is
+void and, when the store fails, only printf()s to the debug UART and leaves
+user_config_loaded_ untouched (main.cpp:43-61) -- so a config that never
+reached flash reads back perfectly over USB. `user_config_loaded` is readonly
+over USB, so this tool cannot use the trick the CAN commit path uses (clear the
+flag, save, see whether the firmware sets it back). Only a power cycle can tell
+the two apart, and it is the operator who has to perform it. leg2 coxa passed a
+full field-by-field verify three times and came up at factory defaults each
+time; that then presented as a dead joint encoder (a board with no absolute
+encoder in NVM at boot makes a healthy MT6701 read 0xFFFFFF) and cost an
+unnecessary encoder swap. --no-power-cycle-check skips it and says so loudly.
+
+Step 4 restores with direct property writes, NOT `odrivetool restore-config`.
+That tool calls erase_configuration(), and it is the common factor in all three
+of the losses above and in the two earlier "restore did not take" boards.
 
 Order matters. The flash wipes NVM whenever config_version changed, so the
 backup must precede it and the restore must follow it. CAN and the joint
@@ -73,7 +86,6 @@ import datetime
 import json
 import math
 import os
-import re
 import subprocess
 import sys
 import time
@@ -260,9 +272,101 @@ def parse_args():
                    help="Sign mapping motor velocity to joint position (default "
                         f"{DEFAULT_POSITION_DIRECTION:+d}; with --gains-only, default "
                         "is whatever the board already has). VERIFY before arming.")
+    p.add_argument("--no-power-cycle-check", action="store_true",
+                   help="Skip the final step that asks you to power-cycle the "
+                        "board and re-reads the config from NVM. ONLY the power "
+                        "cycle proves the save reached flash -- see the note in "
+                        "the module docstring before using this.")
     p.add_argument("--dry-run", action="store_true",
                    help="Back up and report, but do not flash, write or save.")
     return p.parse_args()
+
+
+# Written by this tool and therefore worth proving survived a power cycle. The
+# controller gains are added at runtime only when step 7 actually wrote them.
+NVM_PROOF_PATHS = (
+    "axis0.config.can_node_id",
+    "axis0.config.can_heartbeat_rate_ms",
+    "axis1.config.can_heartbeat_rate_ms",
+    "axis0.motor.config.pole_pairs",
+    "axis0.motor.config.torque_constant",
+    "axis0.motor.config.pre_calibrated",
+    "axis0.encoder.config.mode",
+    "axis0.encoder.config.offset",
+    "axis0.encoder.config.pre_calibrated",
+    "axis1.encoder.config.mode",
+    "axis1.encoder.config.cpr",
+    "axis1.encoder.config.abs_spi_cs_gpio_pin",
+    "axis1.encoder.config.direction",
+    "axis1.encoder.config.zero_offset",
+    "axis0.controller.config.load_encoder_axis",
+    "axis0.controller.config.vel_encoder_axis",
+)
+
+_GAIN_PROOF_PATHS = (
+    "axis0.controller.config.pos_gain",
+    "axis0.controller.config.vel_gain",
+    "axis0.controller.config.vel_integrator_gain",
+    "axis0.controller.config.vel_limit",
+    "axis0.controller.config.position_direction",
+)
+
+
+def snapshot(dev, paths):
+    return {p: get_path(dev, p) for p in paths}
+
+
+def power_cycle_proof(dev, expected, serial, skip):
+    """Prove the save reached NVM. Only a power cycle can.
+
+    save_configuration() is void and only printf()s to the debug UART on
+    failure (main.cpp:43-61), and it leaves user_config_loaded_ at whatever it
+    already was -- so a store that never landed is INVISIBLE over USB, and no
+    readback can tell the two apart. `user_config_loaded` is readonly over USB,
+    so this tool cannot use the trick the CAN commit path uses (clear the flag,
+    save, see whether the firmware sets it back).
+
+    That is not theoretical: leg2 coxa passed a full field-by-field verify three
+    times and came up at factory defaults each time, which then presented as a
+    dead joint encoder and cost an unnecessary module swap.
+    """
+    if skip:
+        print("  SKIPPED (--no-power-cycle-check).")
+        print("  !! Nothing here has proven the save reached FLASH. A silent store")
+        print("     failure looks EXACTLY like success over USB. Power-cycle the")
+        print("     board and re-read before trusting this joint.")
+        return None
+    print("  Everything above was read from RAM, which a failed save cannot be")
+    print("  distinguished from. Remove power from the board, restore it, wait for")
+    print("  it to enumerate, then press Enter (Ctrl-C to skip).")
+    try:
+        input("  power-cycled? [Enter] ")
+    except (EOFError, KeyboardInterrupt):
+        print("\n  SKIPPED -- no confirmation. NVM is UNPROVEN; re-read after the "
+              "next power-up.")
+        return None
+
+    dev = connect(serial, timeout=60)
+    ok = bool(dev.user_config_loaded)
+    print(f"  {'ok  ' if ok else 'FAIL'} user_config_loaded       "
+          f"{dev.user_config_loaded}")
+    if not ok:
+        print("     The board came up at FACTORY DEFAULTS: the save did not reach")
+        print("     flash. Do NOT re-run blindly -- the backup JSON is the only copy")
+        print("     of this joint's configuration.")
+    for path, want in expected.items():
+        try:
+            got = get_path(dev, path)
+        except Exception:                                   # noqa: BLE001
+            continue
+        good = values_match(got, want)
+        # Keep the axis prefix: axis0 and axis1 share field names, and
+        # "encoder.config.mode" twice in a row tells the operator nothing.
+        label = path.replace(".config.", ".")
+        print(f"  {'ok  ' if good else 'FAIL'} {label:38s} "
+              f"{got}{'' if good else f'  (saved {want})'}")
+        ok = ok and good
+    return ok
 
 
 def parse_position(text):
@@ -331,69 +435,42 @@ def run_odrivetool(cmd_args, check=True, capture=False):
                           text=True if capture else None)
 
 
-# `odrivetool restore-config` ALWAYS ends a successful restore on this firmware
-# with a page of alarming output that means nothing is wrong:
-#
-#   * a handful of "Could not apply <x>: This property cannot be written to."
-#     lines -- anticogging's read-only mirrors and can.config.baud_rate are
-#     dumped by backup-config but are not writable, so they can never restore;
-#   * "Some of the configuration could not be restored." -- the summary of the
-#     above;
-#   * a full Python traceback ending in DeviceException 'ODrive did not reboot
-#     but returned None' -- raised by call_rebooting_function AFTER
-#     save_configuration() has already succeeded, because macOS does not always
-#     deliver the USB lost-device event.
-#
-# Printing all of that verbatim trains the operator to ignore this step's
-# output, which is exactly the step where a real mismatch must not be missed.
-# It is filtered to one summary line; anything unrecognised is still printed in
-# full, and the whole captured log is dumped if the field-by-field verify fails.
-_BENIGN_RESTORE_LINES = (
-    re.compile(r"^Could not apply .*\.anticogging\.\w+: This property cannot be written to\.$"),
-    re.compile(r"^Could not apply can\.config\.baud_rate: This property cannot be written to\.$"),
-    re.compile(r"^Some of the configuration could not be restored\.$"),
-    re.compile(r"^Waiting for ODrive\.\.\.$"),
-    re.compile(r"^Restoring configuration from .*\.\.\.$"),
-    re.compile(r"^\s*$"),
-)
-_BENIGN_RESTORE_EXC = re.compile(
-    r"^odrive\.exceptions\.DeviceException: ODrive did not reboot but returned None$")
-_EXC_LINE = re.compile(r"^[A-Za-z_][\w.]*(Error|Exception|Exit)\b.*$")
+# Dumped by backup-config but not writable, so they can never be restored and
+# their failure means nothing. Same list odrivetool trips over.
+_READONLY_SUFFIXES = (".anticogging.index", ".anticogging.calib_anticogging",
+                      ".anticogging.cogging_ratio")
+_READONLY_EXACT = ("can.config.baud_rate",)
 
 
-def filter_restore_output(text):
-    """Split odrivetool's restore log into (benign_count, unexpected_lines)."""
-    benign, unexpected = 0, []
-    lines = text.splitlines()
-    i = 0
-    while i < len(lines):
-        line = lines[i].rstrip()
-        if line.startswith("Traceback (most recent call last):"):
-            block = [line]
-            i += 1
-            # A traceback runs until the first non-indented line, which is the
-            # exception itself. Judge the block by that line alone.
-            while i < len(lines) and (lines[i].startswith((" ", "\t"))
-                                      or not lines[i].strip()):
-                block.append(lines[i].rstrip())
-                i += 1
-            if i < len(lines):
-                block.append(lines[i].rstrip())
-                exc = lines[i].rstrip()
-                i += 1
-            else:
-                exc = ""
-            if _BENIGN_RESTORE_EXC.match(exc) or not _EXC_LINE.match(exc):
-                benign += 1
-            else:
-                unexpected.extend(block)
+def apply_config_json(dev, path):
+    """Write a backup JSON onto the board field by field, in THIS connection.
+
+    Replaces `odrivetool restore-config`, which was the common factor in three
+    configurations that read back perfectly and were GONE at the next power-up
+    (leg2 coxa 2026-08-03), and in the two "restore did not take" boards before
+    it. That tool calls erase_configuration(); nvm.c states that unless exactly
+    one sector is marked valid the valid-sector choice is UNDEFINED, so an erase
+    followed by a single store can land there. Direct writes never erase.
+
+    Writes RAM only -- step 8 does the single save. If the run aborts in
+    between, NVM is untouched, which is the safer failure.
+    """
+    with open(path) as f:
+        cfg = json.load(f)
+    applied, failed = 0, []
+    for key, value in cfg.items():
+        if key in _READONLY_EXACT or key.endswith(_READONLY_SUFFIXES):
             continue
-        if any(p.match(line) for p in _BENIGN_RESTORE_LINES):
-            benign += 1
-        else:
-            unexpected.append(line)
-        i += 1
-    return benign, unexpected
+        parts = key.split(".")
+        try:
+            obj = dev
+            for p in parts[:-1]:
+                obj = getattr(obj, p)
+            setattr(obj, parts[-1], value)
+            applied += 1
+        except Exception as exc:                            # noqa: BLE001
+            failed.append(f"{key}: {type(exc).__name__}")
+    return applied, failed
 
 
 def unique_path(path):
@@ -808,7 +885,7 @@ def main():
     file_label = f"motor{args.motor}" if args.motor else f"leg{leg}-{joint_name}"
     motor_arg = f"--motor {args.motor} " if args.motor else ""
     # gains-only runs: identify, encoders, gains, save, verify.
-    step = make_stepper(5 if args.gains_only else 9)
+    step = make_stepper(6 if args.gains_only else 10)
 
     hdr(f"{who}leg {leg} {joint_name} (position {args.position})"
         f"  ->  can_node_id {node}")
@@ -950,23 +1027,20 @@ def main():
                 print("  (nothing was wiped, so rewriting the config would only add "
                       "risk).")
             else:
-                # Exit code is unreliable here: restore-config raises DeviceException
-                # ('ODrive did not reboot') AFTER successfully saving. Verify instead.
-                proc = run_odrivetool(["restore-config", backup], check=False,
-                                      capture=True)
-                log = proc.stdout or ""
-                benign, unexpected = filter_restore_output(log)
-                print(f"  odrivetool restore: {benign} known-benign line(s) suppressed "
-                      "(read-only anticogging/baud_rate props, and the post-save")
-                print("  'ODrive did not reboot' exception -- the save had already "
-                      "succeeded). Truth is the compare below.")
-                for line in unexpected:
-                    print(f"    odrivetool| {line}")
-                dev = connect(args.serial_number)
+                # NOT `odrivetool restore-config`. That tool erases NVM first,
+                # and it is the common factor in every configuration that has
+                # silently failed to reach flash on this fleet. These writes go
+                # straight into the live connection and are committed by the
+                # single save in step 8.
+                applied, failed = apply_config_json(dev, backup)
+                print(f"  applied {applied} fields directly from the backup "
+                      f"(no erase, no restore-config)")
+                for line in failed:
+                    print(f"    could not apply {line}")
+                if failed:
+                    raise SystemExit(f"{len(failed)} field(s) could not be applied "
+                                     "-- fix before continuing.")
                 if not verify_against_json(dev, backup):
-                    print("\n  --- full odrivetool restore log ---")
-                    for line in log.splitlines():
-                        print(f"    {line}")
                     raise SystemExit("restore verify FAILED -- fix before continuing.")
             print(f"  user_config_loaded {dev.user_config_loaded}")
             print(f"  Kt {dev.axis0.motor.config.torque_constant:.4f}   "
@@ -1292,6 +1366,13 @@ def main():
         for name, value, good in checks:
             print(f"  {'ok  ' if good else 'FAIL'} {name:24s} {value}")
             ok = ok and good
+        expected = snapshot(dev, _GAIN_PROOF_PATHS)
+        step("prove the save reached NVM (power cycle)")
+        proven = power_cycle_proof(dev, expected, args.serial_number,
+                                   args.no_power_cycle_check)
+        if proven is False:
+            ok = False
+
         hdr(f"{'DONE' if ok else 'INCOMPLETE'} (gains only): {who}"
             f"leg {leg} {joint_name}, node {node}")
         print(f"  pos_gain {gains_applied['pos_gain']:.0f} / "
@@ -1299,8 +1380,10 @@ def main():
               f"vel_i {gains_applied['vel_integrator_gain']:.4f} / "
               f"vel_limit {gains_applied['vel_limit']:.1f} written and saved.")
         print("  Joint zero, endstops, CAN node id and commutation were NOT touched.")
-        print("  The board was not rebooted, so the new gains are live in RAM and in")
-        print("  NVM -- confirm them once more after the next power-up.")
+        if proven:
+            print("  NVM PROVEN: the gains were re-read after a power cycle.")
+        else:
+            print("  NVM NOT PROVEN -- confirm the gains after the next power-up.")
         return 0 if ok else 1
 
     step("verify over a fresh connection (no reboot)")
@@ -1416,6 +1499,15 @@ def main():
         print(f"  {'ok  ' if good else 'FAIL'} {name:24s} {value}")
         ok = ok and good
 
+    # ---- 10. prove NVM -----------------------------------------------------
+    proof_paths = NVM_PROOF_PATHS + (_GAIN_PROOF_PATHS if gains_applied else ())
+    expected = snapshot(dev, proof_paths)
+    step("prove the save reached NVM (power cycle)")
+    proven = power_cycle_proof(dev, expected, args.serial_number,
+                               args.no_power_cycle_check)
+    if proven is False:
+        ok = False
+
     hdr(f"{'DONE' if ok else 'INCOMPLETE'}: {who}leg {leg} "
         f"{joint_name}, node {node}")
     if not a0_post_ok:
@@ -1427,9 +1519,15 @@ def main():
     if not args.no_mt6701 and encoder_ok is False:
         print("  axis1 joint encoder is NOT configured -- fix wiring and re-run "
               "with --skip-flash.")
-    print("  The board was NOT rebooted (save + reboot is what wedges an abs-SPI")
-    print("  encoder). Everything above is live in RAM and saved in NVM; confirm it")
-    print("  once more after the next ordinary power-up.")
+    print("  The board was NOT rebooted by this tool (save + reboot is what wedges")
+    print("  an abs-SPI encoder); step 10's power cycle is operator-driven.")
+    if proven:
+        print("  NVM PROVEN: every field above was re-read after a power cycle.")
+    elif proven is False:
+        print("  !! NVM FAILED: the board did not come back with what was saved.")
+    else:
+        print("  !! NVM NOT PROVEN -- the save was never confirmed against a power")
+        print("     cycle, and a silent store failure is invisible over USB.")
     print(f"  Record it in {os.path.relpath(os.path.join(HERE, 'CAN_NODE_ID_MAP.md'), REPO)}:")
     print(f"    | {leg} | {joint} | {joint_name:11s} | **{node}** | "
           f"{args.motor if args.motor else '?'} | {serial} |")

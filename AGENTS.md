@@ -489,6 +489,30 @@ cd /Users/alarin/Documents/art/ogonek25-spider/ODrive_S-fw-v0.5.1
 .venv/bin/odrivetool restore-config odrive-config-before-flash.json
 ```
 
+**⚠️ `restore-config` is a suspect, and a save is NOT proven by a readback.**
+`save_configuration()` is void and, when the store fails, only `printf()`s to
+the debug UART while leaving `user_config_loaded_` untouched
+(`Firmware/MotorControl/main.cpp`) — so a configuration that never reached
+flash reads back **perfectly** over USB. `user_config_loaded` is readonly over
+USB, so the trick the CAN commit path uses (clear the flag, save, see whether
+the firmware sets it back) is not available.
+
+On 2026-08-03 leg2 coxa lost its configuration three times, each time after a
+`restore-config`, each time passing a full field-by-field verify first. It then
+presented as a **dead joint encoder** — a board that boots with no absolute
+encoder in NVM makes a healthy MT6701 read `0xFFFFFF` at 100% bad CRC — and
+cost an unnecessary encoder swap. `restore-config` calls
+`erase_configuration()`, and `nvm.c` states the valid-sector choice is
+**undefined** unless exactly one sector is marked valid.
+
+Prefer **direct property writes** from the backup JSON followed by a single
+`save_configuration()` — that is what `spider-motor-tools/robot_joint_setup.py`
+now does (`apply_config_json()`), and it has survived every power cycle since.
+Skip these as read-only: `*.anticogging.{index,calib_anticogging,cogging_ratio}`
+and `can.config.baud_rate`.
+
+**Always finish with a POWER CYCLE and re-read.** Nothing else proves NVM.
+
 The old JSON does not contain newly added fields such as
 `axis1.encoder.config.direction` and `axis1.encoder.config.zero_offset`. After
 restoring, configure those fields, capture the desired zero, verify all motor,
