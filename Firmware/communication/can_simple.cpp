@@ -630,6 +630,15 @@ void CANSimple::config_access_callback(Axis* axis, can_Message_t& msg) {
             status = write ? CONFIG_READ_ONLY : CONFIG_OK;
             out.u = enc->error_;
             break;
+        case PARAM_JOINT_TURN_SNAPS:
+            // How many times the automatic turn-snap has had to pull the linear
+            // pos_estimate back onto [min_position, max_position]. Non-zero
+            // means this joint IS losing turns -- the snap papers over it, the
+            // cause is dropped SPI samples (EMI) or stick-slip. Watch the rate.
+            out.type = CONFIG_TYPE_UINT32;
+            status = write ? CONFIG_READ_ONLY : CONFIG_OK;
+            out.u = enc->turn_snap_count_;
+            break;
 
         // ------------------------------------------------------- controller
         case PARAM_POS_GAIN:

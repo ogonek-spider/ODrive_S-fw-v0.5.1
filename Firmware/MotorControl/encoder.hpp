@@ -136,6 +136,7 @@ public:
     float user_pos_estimate_counts_ = 0.0f; // Direction- and zero-adjusted position [count]
     float last_raw_pos_estimate_counts_ = 0.0f;
     bool user_position_initialized_ = false;
+    bool abs_counts_seeded_ = false; // PLL seeded from the first absolute sample
     float pll_kp_ = 0.0f;   // [count/s / count]
     float pll_ki_ = 0.0f;   // [(count/s^2) / count]
     float calib_scan_response_ = 0.0f; // debug report from offset calib
@@ -156,6 +157,7 @@ public:
     uint32_t mt6701_debug_start_fail_count_ = 0;
     uint32_t mt6701_debug_mode_ = 0;
     float harmonic_error_ = 0.0f; // live harmonic correction applied [count]
+    uint32_t turn_snap_count_ = 0; // times the linear pos was snapped a whole turn
 
     float pos_estimate_ = 0.0f; // [turn]
     float vel_estimate_ = 0.0f; // [turn/s]

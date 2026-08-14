@@ -70,6 +70,7 @@ PARAMS = {
     "count_in_cpr":   (0x09, T_INT32,  "count", True,  False),
     "cpr":            (0x0A, T_INT32,  "count", True,  False),
     "encoder_error":  (0x0B, T_UINT32, "",      True,  False),
+    "turn_snaps":     (0x0C, T_UINT32, "",      True,  False),
     # controller
     "pos_gain":       (0x10, T_FLOAT,  "",      False, False),
     "vel_gain":       (0x11, T_FLOAT,  "",      False, False),
@@ -95,7 +96,8 @@ PARAMS = {
 BY_ID = {v[0]: k for k, v in PARAMS.items()}
 
 # What `--node N` with no --set prints, in a useful reading order.
-SUMMARY = ["pos", "count_in_cpr", "cpr", "encoder_error", "direction", "zero_offset",
+SUMMARY = ["pos", "count_in_cpr", "cpr", "encoder_error", "turn_snaps",
+           "direction", "zero_offset",
            "min", "max", "limit_enable",
            "pos_gain", "vel_gain", "vel_int_gain", "vel_limit", "pos_direction",
            "load_axis", "vel_axis", "input_filter_bw",

@@ -42,6 +42,10 @@ void Encoder::set_mode(Mode mode) {
     mode_ = mode;
     mt6701_debug_mode_ = mode_;
     abs_spi_pos_updated_ = false;
+    // Re-arm the one-shot count seeding below: bringing an abs encoder up from
+    // mode 0 at run time (robot_joint_setup.py does exactly this) must seed the
+    // PLL from the first sample just like a cold boot does.
+    abs_counts_seeded_ = false;
     if (mode_ & MODE_FLAG_ABS) {
         abs_spi_cs_pin_init();
         abs_spi_init();
@@ -530,6 +534,7 @@ bool Encoder::update() {
     // update internal encoder state.
     int32_t delta_enc = 0;
     int32_t pos_abs_latched = pos_abs_; //LATCH
+    bool abs_sample_ok = false;
 
     switch (mode_) {
         case MODE_INCREMENTAL: {
@@ -587,6 +592,7 @@ bool Encoder::update() {
             } else {
                 spi_error_rate_ += current_meas_period * (0.0f - spi_error_rate_);
                 spi_consecutive_errors_ = 0;
+                abs_sample_ok = true;
             }
 
             abs_spi_pos_updated_ = false;
@@ -609,6 +615,44 @@ bool Encoder::update() {
 
     if(mode_ & MODE_FLAG_ABS)
         count_in_cpr_ = pos_abs_latched;
+
+    // Seed the PLL from the FIRST good absolute sample.
+    //
+    // Both accumulators default to 0.0 and stock code only ever walks them
+    // toward the truth through the PLL. That is wrong for an absolute encoder:
+    // the position is known exactly on sample one, and the user-position seed
+    // below (user_position_initialized_) runs on that very same cycle, reading
+    // pos_cpr_counts_ while it is still 0.
+    //
+    // 🔴 THIS is the root cause of the "pos_estimate boots a whole turn low"
+    // bug, not stick-slip or dropped SPI samples. It is deterministic and
+    // decided entirely by zero_offset. Worked example, leg2 knee 2026-08-03
+    // (zero_offset 6391, cpr 16384, true count 10651):
+    //
+    //     seed        = wrap_pm(0 - 6391, 8192)  = -6391 counts
+    //     first delta = wrap(10651 - 0)          = -5733 counts -> shadow_count_
+    //     accumulator = -6391 + -5733 = -12124 counts = -0.74014 turn
+    //                 = -266.44 deg, where the truth is +93.55 deg
+    //
+    // which is exactly what the joint reported. leg1 knee showed the identical
+    // signature on 2026-07-28 for the same reason.
+    //
+    // Seeding here (before the PLL block, so the user seed downstream reads a
+    // converged pos_cpr_counts_) makes the boot value correct on cycle one, and
+    // fixes joints that have NO endstops configured -- which the turn-snap
+    // below cannot help, because it needs a declared range to snap onto.
+    //
+    // Gated on a good sample: a cycle that missed its SPI read leaves
+    // count_in_cpr_ stale, and seeding off that would defeat the purpose.
+    if ((mode_ & MODE_FLAG_ABS) && !abs_counts_seeded_ && abs_sample_ok) {
+        shadow_count_ = count_in_cpr_;
+        pos_estimate_counts_ = (float)shadow_count_;
+        pos_cpr_counts_ = (float)count_in_cpr_;
+        vel_estimate_counts_ = 0.0f;
+        abs_counts_seeded_ = true;
+        // The user coordinate must be seeded from these, not from the zeros.
+        user_position_initialized_ = false;
+    }
 
     // Harmonic (eccentricity) compensation. The dominant magnetic-encoder
     // error is periodic in one mechanical revolution: a 1st harmonic from
@@ -691,6 +735,57 @@ bool Encoder::update() {
     pos_estimate_ = user_pos_estimate_counts_ / (float)config_.cpr;
     vel_estimate_ = user_direction * vel_estimate_counts_ / (float)config_.cpr;
     pos_cpr_ = user_pos_cpr;
+
+    // Turn-snap: pull the linear accumulator back onto the legal joint range.
+    //
+    // user_pos_estimate_counts_ is an accumulator seeded once and then only
+    // integrated, so a wrap taken the wrong way (dropped SPI samples during a
+    // stick-slip burst, or a boot with the joint parked >half a turn from zero)
+    // costs it exactly one whole turn -- permanently, and invisibly, because
+    // count_in_cpr_ stays correct. Observed twice: leg1 knee 2026-07-28 and
+    // leg2 knee 2026-08-03, both reporting true_angle - 360 deg.
+    //
+    // The circular count alone cannot fix this: every candidate turn is equally
+    // consistent with it. The software endstops CAN, and they are already in
+    // NVM: when the joint's legal travel spans less than one turn there is
+    // exactly one integer turn k that puts the estimate inside [min, max]. Snap
+    // to it. A range >= 1 turn is genuinely ambiguous, so the guard below
+    // disables the correction there rather than guessing.
+    //
+    // SAFETY: only while BOTH axes are IDLE. The correction is a discrete 360
+    // deg step; applying it under closed-loop control would hand the position
+    // loop a full turn of error to chase. Checking both axes matters because on
+    // a split-feedback joint this encoder lives on axis1, which is always IDLE
+    // while axis0 drives the motor -- axis_->current_state_ alone would not see
+    // the armed axis. A turn lost while armed is therefore left alone and
+    // corrected on the next return to IDLE (or by PARAM_JOINT_RESEED).
+    //
+    // Bit-identical to stock whenever enable_position_limit is false.
+    // The is_ready_/error_ gate keeps turn_snap_count_ meaningful: a wedged or
+    // unconfigured abs encoder publishes a garbage position that would snap
+    // (and tick the counter) forever, making "this joint loses turns" and "this
+    // joint's encoder is dead" indistinguishable. Seen for real on leg2 knee
+    // 2026-08-03, mode 0 + 100% bad CRC, counter at 1.
+    if (config_.enable_position_limit && config_.cpr > 0
+            && is_ready_ && error_ == ERROR_NONE
+            && config_.max_position >= config_.min_position
+            && (config_.max_position - config_.min_position) < 1.0f) {
+        bool all_idle = true;
+        for (auto& axis : axes) {
+            if (!axis || axis->current_state_ != Axis::AXIS_STATE_IDLE)
+                all_idle = false;
+        }
+        if (all_idle) {
+            float center = 0.5f * (config_.min_position + config_.max_position);
+            float k = std::round(pos_estimate_ - center);
+            // The magnitude test also rejects NaN/inf (every compare is false).
+            if (k != 0.0f && std::abs(k) < 1000.0f) {
+                user_pos_estimate_counts_ -= k * (float)config_.cpr;
+                pos_estimate_ = user_pos_estimate_counts_ / (float)config_.cpr;
+                turn_snap_count_++;
+            }
+        }
+    }
 
     //// run encoder count interpolation
     int32_t corrected_enc = count_in_cpr_ - config_.offset;

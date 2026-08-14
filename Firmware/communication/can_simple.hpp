@@ -68,6 +68,7 @@ class CANSimple {
         PARAM_JOINT_COUNT_IN_CPR = 0x09,  // int32  [count]  read-only
         PARAM_JOINT_CPR = 0x0A,           // int32  [count]  read-only
         PARAM_JOINT_ENCODER_ERROR = 0x0B, // uint32          read-only
+        PARAM_JOINT_TURN_SNAPS = 0x0C,    // uint32          read-only
 
         PARAM_POS_GAIN = 0x10,                // float
         PARAM_VEL_GAIN = 0x11,                // float

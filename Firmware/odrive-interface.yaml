@@ -796,6 +796,7 @@ interfaces:
       mt6701_debug_start_fail_count: readonly uint32
       mt6701_debug_mode: readonly uint32
       harmonic_error: readonly float32
+      turn_snap_count: readonly uint32
       config:
         c_is_class: False
         attributes:
